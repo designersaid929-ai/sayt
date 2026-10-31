@@ -104,19 +104,19 @@ Muhim:
 
 ## Vercel’da namoyish
 
-Loyiha Vercel’ga ham joylanadi (, ), lekin **faqat namoyish uchun**: Vercel’da doimiy disk yo‘q,
-shuning uchun baza va yuklangan rasmlar  da turadi va server “uxlab” qolganda yoki qayta joylanganda o‘chib ketadi.
+Loyiha Vercel’ga ham joylanadi (`vercel.json`, `api/index.js`), lekin **faqat namoyish uchun**: Vercel’da doimiy disk yo‘q,
+shuning uchun baza va yuklangan rasmlar `/tmp` da turadi va server “uxlab” qolganda yoki qayta joylanganda o‘chib ketadi.
 Admin panelda bu haqda ogohlantirish chiqadi. Kerakli muhit o‘zgaruvchilari:
 
 | O‘zgaruvchi | Qiymat |
 |---|---|
-|  |  |
-|  |  |
-| ,  | administrator kirish ma’lumotlari (har ishga tushganda qayta yaratiladi) |
-|  |  |
-|  |  |
-|  |  |
-|  | Vercel manzili |
+| `DATA_DIR` | `/tmp/data` |
+| `UPLOAD_DIR` | `/tmp/uploads` |
+| `ADMIN_LOGIN`, `ADMIN_PASSWORD` | administrator kirish ma’lumotlari (har ishga tushganda qayta yaratiladi) |
+| `NODE_ENV` | `production` |
+| `TRUST_PROXY` | `1` |
+| `DEMO_MODE` | `1` |
+| `SITE_URL` | Vercel manzili |
 
 Haqiqiy ish uchun doimiy diskli hostingdan foydalaning (yuqoridagi bo‘lim).
 
