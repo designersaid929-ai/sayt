@@ -8,7 +8,7 @@ import { RESOURCES, canAccess } from '../resources.js';
 import { validateValue, HttpError } from '../validate.js';
 import { SETTINGS_FIELDS, getSettings, saveSettings } from '../settings.js';
 import { slugify, today } from '../util.js';
-import { UPLOAD_DIR } from '../config.js';
+import { UPLOAD_DIR, DEMO_MODE } from '../config.js';
 
 const router = express.Router();
 router.use(requireRole('admin', 'manager'));
@@ -35,7 +35,7 @@ router.get('/meta', (req, res) => {
     resources,
     settings: req.user.role === 'admin' ? SETTINGS_FIELDS : null,
     today: today(),
-    demo: process.env.DEMO_MODE === '1',
+    demo: DEMO_MODE,
   });
 });
 

@@ -5,7 +5,7 @@
   "description": "O‘quv markazi uchun premium web-sayt, administrator paneli va o‘quvchi kabineti",
   "type": "module",
   "engines": {
-    "node": ">=22.13"
+    "node": "24.x"
   },
   "scripts": {
     "start": "node --env-file-if-exists=.env --no-warnings=ExperimentalWarning server/index.js",
