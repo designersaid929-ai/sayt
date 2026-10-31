@@ -1,0 +1,24 @@
+{
+  "name": "oquv-markazi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "O‘quv markazi uchun premium web-sayt, administrator paneli va o‘quvchi kabineti",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env --no-warnings=ExperimentalWarning server/index.js",
+    "dev": "node --env-file-if-exists=.env --no-warnings=ExperimentalWarning --watch server/index.js",
+    "create-user": "node --env-file-if-exists=.env --no-warnings=ExperimentalWarning server/scripts/create-user.js",
+    "build": "esbuild src/hero3d.js --bundle --minify --format=esm --target=es2020 --outfile=public/js/hero3d.js"
+  },
+  "dependencies": {
+    "compression": "^1.8.2",
+    "express": "^5.3.0",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
