@@ -1,19 +1,24 @@
-import postgres from 'postgres';
+import pg from 'pg';
+import { attachDatabasePool } from '@vercel/functions';
 import { DATABASE_URL, DB_SCHEMA, ON_VERCEL } from './config.js';
 
 if (!DATABASE_URL) {
   throw new Error('DATABASE_URL o‘rnatilmagan. .env fayliga Supabase (Postgres) ulanish satrini yozing — README’ga qarang.');
 }
+if (!/^[a-z_][a-z0-9_]*$/.test(DB_SCHEMA)) throw new Error(`DB_SCHEMA noto‘g‘ri: ${DB_SCHEMA}`);
 
-// Supabase Supavisor (transaction mode) prepared statement’larni qo‘llamaydi — prepare: false
-export const sql = postgres(DATABASE_URL, {
-  prepare: false,
-  max: ON_VERCEL ? 1 : 5,
-  idle_timeout: 20,
-  connect_timeout: 15,
-  onnotice: () => {},
-  connection: { search_path: DB_SCHEMA },
+// Supabase Supavisor (transaction mode, 6543-port). search_path ulanish parametri sifatida beriladi.
+const pool = new pg.Pool({
+  connectionString: DATABASE_URL,
+  options: `-c search_path=${DB_SCHEMA}`,
+  max: ON_VERCEL ? 5 : 10,
+  idleTimeoutMillis: ON_VERCEL ? 5_000 : 30_000,
+  connectionTimeoutMillis: 10_000,
 });
+pool.on('error', (err) => console.error('Baza ulanishida xato:', err.message));
+
+// Vercel funksiyani muzlatishdan oldin bo‘sh ulanishlarni yopadi — aks holda uzilgan ulanish so‘rovni osib qo‘yadi
+if (ON_VERCEL) attachDatabasePool(pool);
 
 const NOW = "to_char(now() at time zone 'utc', 'YYYY-MM-DD HH24:MI:SS')";
 
@@ -193,8 +198,11 @@ function toPg(query) {
   return query.replace(/\?/g, () => `$${++i}`);
 }
 
-function queries(s) {
-  const exec = (q, params) => s.unsafe(toPg(q), params.map((p) => (p === undefined ? null : p)));
+function queries(runner) {
+  // Parametrsiz so‘rov oddiy protokol bilan yuboriladi (migratsiyadagi bir nechta buyruq uchun)
+  const exec = async (q, params) => (params.length
+    ? await runner.query(toPg(q), params.map((p) => (p === undefined ? null : p)))
+    : await runner.query(q)).rows;
   return {
     all: (q, ...p) => exec(q, p),
     one: async (q, ...p) => (await exec(q, p))[0],
@@ -202,26 +210,41 @@ function queries(s) {
   };
 }
 
-export const { all, one, run } = queries(sql);
+export const { all, one, run } = queries(pool);
 
 /** Tranzaksiya: fn({ all, one, run }) ichidagi so‘rovlar bitta tranzaksiyada bajariladi. */
-export function tx(fn) {
-  return sql.begin((t) => fn(queries(t)));
+export async function tx(fn) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await fn(queries(client));
+    await client.query('COMMIT');
+    return result;
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 /** Jadvallarni yaratadi/yangilaydi. Bir vaqtda bir nechta server ishga tushsa ham xavfsiz (advisory lock). */
 export async function migrate() {
-  if (!/^[a-z_][a-z0-9_]*$/.test(DB_SCHEMA)) throw new Error(`DB_SCHEMA noto‘g‘ri: ${DB_SCHEMA}`);
-  await sql.unsafe(`CREATE SCHEMA IF NOT EXISTS ${DB_SCHEMA}`);
-  await sql.begin(async (t) => {
-    await t`SELECT pg_advisory_xact_lock(482917)`;
-    await t.unsafe('CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)');
-    const row = (await t.unsafe('SELECT version FROM schema_version'))[0];
+  await pool.query(`CREATE SCHEMA IF NOT EXISTS ${DB_SCHEMA}`);
+  await tx(async (q) => {
+    await q.run('SELECT pg_advisory_xact_lock(482917)');
+    await q.run('CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)');
+    const row = await q.one('SELECT version FROM schema_version');
     let version = row?.version ?? 0;
-    if (!row) await t.unsafe('INSERT INTO schema_version (version) VALUES (0)');
+    if (!row) await q.run('INSERT INTO schema_version (version) VALUES (0)');
     for (; version < MIGRATIONS.length; version++) {
-      await t.unsafe(MIGRATIONS[version]);
-      await t.unsafe('UPDATE schema_version SET version = $1', [version + 1]);
+      await q.run(MIGRATIONS[version]);
+      await q.run('UPDATE schema_version SET version = ?', version + 1);
     }
   });
+}
+
+/** Skriptlar uchun: ulanishlarni yopadi. */
+export function closeDb() {
+  return pool.end();
 }

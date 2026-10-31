@@ -1,7 +1,7 @@
 // Foydalanish: npm run create-user -- --login ali --password "Parol123" --role admin --name "Ali Valiyev"
 // Login mavjud bo‘lsa, paroli va roli yangilanadi (unutilgan administrator parolini tiklash uchun).
 import { parseArgs } from 'node:util';
-import { one, run, sql, migrate } from '../db.js';
+import { one, run, migrate, closeDb } from '../db.js';
 import { hashPassword, passwordProblem, loginProblem, revokeSessions } from '../auth.js';
 
 const { values } = parseArgs({
@@ -30,4 +30,4 @@ if (existing) {
   await run('INSERT INTO users (role, full_name, login, password_hash) VALUES (?, ?, ?, ?)', values.role, values.name, values.login, hashPassword(values.password));
   console.log(`“${values.login}” foydalanuvchisi (${values.role}) yaratildi.`);
 }
-await sql.end();
+await closeDb();

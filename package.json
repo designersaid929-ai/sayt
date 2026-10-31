@@ -14,9 +14,10 @@
     "build": "esbuild src/hero3d.js --bundle --minify --format=esm --target=es2020 --outfile=public/js/hero3d.js"
   },
   "dependencies": {
+    "@vercel/functions": "^3.10.5",
     "compression": "^1.8.2",
     "express": "^5.3.0",
-    "postgres": "^3.4.9",
+    "pg": "^8.23.1",
     "three": "^0.187.0"
   },
   "devDependencies": {

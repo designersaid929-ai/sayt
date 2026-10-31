@@ -10,7 +10,7 @@ Dizayn tizimi va sahifalar xaritasi: [docs/DIZAYN.md](docs/DIZAYN.md).
 | Qism | Texnologiya |
 |---|---|
 | Server | Node.js 24, Express 5 |
-| Ma’lumotlar bazasi | Supabase Postgres (`postgres` drayveri, Supavisor pooler). Yuklangan rasmlar ham bazada saqlanadi |
+| Ma’lumotlar bazasi | Supabase Postgres (`pg` drayveri + `attachDatabasePool`, Supavisor pooler). Yuklangan rasmlar ham bazada saqlanadi |
 | Hosting | Vercel (`api/index.js` — butun ilova bitta serverless funksiya) |
 | Sahifalar | Serverda tayyorlanadigan HTML (SEO uchun), toza CSS, kichik JS |
 | 3D | Three.js, esbuild bilan yig‘ilgan (`public/js/hero3d.js`) |
