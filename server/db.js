@@ -172,6 +172,11 @@ const MIGRATIONS = [
   CREATE INDEX idx_tests_student ON tests(student_id);
   CREATE INDEX idx_group_students_student ON group_students(student_id);
   `,
+  // 2: sessiyalar imzolangan cookie’ga o‘tkazildi
+  `
+  ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0;
+  DROP TABLE sessions;
+  `,
 ];
 
 export function tx(fn) {

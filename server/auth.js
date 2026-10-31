@@ -1,6 +1,8 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { one, run } from './db.js';
-import { COOKIE_SECURE, SESSION_DAYS } from './config.js';
+import { COOKIE_SECURE, SESSION_DAYS, DATA_DIR } from './config.js';
 
 const SCRYPT = { N: 16384, r: 8, p: 1 };
 const COOKIE = 'sid';
@@ -36,8 +38,6 @@ export function loginProblem(login) {
   return null;
 }
 
-const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
-
 function parseCookies(header) {
   const out = {};
   for (const part of String(header || '').split(';')) {
@@ -59,30 +59,56 @@ export function authenticate(login, password) {
   return ok && user ? user : null;
 }
 
+/*
+ * Sessiya — imzolangan cookie: "foydalanuvchi.versiya.muddat.imzo".
+ * Bazada saqlanmaydi, shuning uchun bir nechta server nusxasida (Vercel) ham ishlaydi.
+ * Parol o‘zgarganda yoki hisob bloklanganda users.token_version oshiriladi va eski cookie’lar bekor bo‘ladi.
+ */
+function loadSecret() {
+  if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
+  const file = path.join(DATA_DIR, 'session-secret');
+  try {
+    return fs.readFileSync(file, 'utf8').trim();
+  } catch {
+    const secret = crypto.randomBytes(32).toString('base64url');
+    fs.writeFileSync(file, secret, { mode: 0o600 });
+    return secret;
+  }
+}
+const SECRET = loadSecret();
+const sign = (payload) => crypto.createHmac('sha256', SECRET).update(payload).digest('base64url');
+
 export function startSession(res, userId) {
-  const token = crypto.randomBytes(32).toString('base64url');
+  const user = one('SELECT token_version FROM users WHERE id = ?', userId);
   const ttl = SESSION_DAYS * 86400;
-  run('INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)', sha256(token), userId, Date.now() + ttl * 1000);
-  run('DELETE FROM sessions WHERE expires_at < ?', Date.now());
-  setCookie(res, token, ttl);
+  const payload = `${userId}.${user.token_version}.${Date.now() + ttl * 1000}`;
+  setCookie(res, `${payload}.${sign(payload)}`, ttl);
 }
 
-export function endSession(req, res) {
-  const token = parseCookies(req.headers.cookie)[COOKIE];
-  if (token) run('DELETE FROM sessions WHERE token_hash = ?', sha256(token));
+export function endSession(_req, res) {
   setCookie(res, '', 0);
 }
 
+/** Foydalanuvchining barcha ochiq sessiyalarini bekor qiladi. */
+export function revokeSessions(userId) {
+  run('UPDATE users SET token_version = token_version + 1 WHERE id = ?', userId);
+}
+
+function verifyToken(token) {
+  const m = /^(\d+)\.(\d+)\.(\d+)\.([\w-]+)$/.exec(token || '');
+  if (!m) return null;
+  const expected = Buffer.from(sign(`${m[1]}.${m[2]}.${m[3]}`));
+  const given = Buffer.from(m[4]);
+  if (given.length !== expected.length || !crypto.timingSafeEqual(given, expected)) return null;
+  if (Number(m[3]) < Date.now()) return null;
+  return { userId: Number(m[1]), version: Number(m[2]) };
+}
+
 export function loadUser(req, _res, next) {
-  const token = parseCookies(req.headers.cookie)[COOKIE];
-  req.user = null;
-  if (token) {
-    req.user = one(
-      `SELECT u.id, u.role, u.full_name, u.login FROM sessions s JOIN users u ON u.id = s.user_id
-       WHERE s.token_hash = ? AND s.expires_at > ? AND u.active = 1`,
-      sha256(token), Date.now(),
-    ) ?? null;
-  }
+  const t = verifyToken(parseCookies(req.headers.cookie)[COOKIE]);
+  req.user = t
+    ? one('SELECT id, role, full_name, login FROM users WHERE id = ? AND token_version = ? AND active = 1', t.userId, t.version) ?? null
+    : null;
   next();
 }
 

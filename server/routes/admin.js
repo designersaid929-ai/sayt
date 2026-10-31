@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { db, one, all, run, tx } from '../db.js';
-import { requireRole, hashPassword, passwordProblem, loginProblem } from '../auth.js';
+import { requireRole, hashPassword, passwordProblem, loginProblem, revokeSessions } from '../auth.js';
 import { RESOURCES, canAccess } from '../resources.js';
 import { validateValue, HttpError } from '../validate.js';
 import { SETTINGS_FIELDS, getSettings, saveSettings } from '../settings.js';
@@ -250,6 +250,7 @@ router.post('/students/:id/account', (req, res) => {
 
   if (student.user_id) {
     run('UPDATE users SET password_hash = ?, full_name = ?, active = 1 WHERE id = ?', hashPassword(password), student.full_name, student.user_id);
+    revokeSessions(student.user_id);
     return res.json({ ok: true, message: 'Parol yangilandi' });
   }
   const lp = loginProblem(login);
@@ -400,9 +401,9 @@ router.put('/users/:id', isAdmin, (req, res) => {
       const pp = passwordProblem(password);
       if (pp) throw new HttpError(422, pp, { password: pp });
       run('UPDATE users SET password_hash = ? WHERE id = ?', hashPassword(password), id);
-      run('DELETE FROM sessions WHERE user_id = ?', id);
+      revokeSessions(id);
     }
-    if (active !== undefined && !active) run('DELETE FROM sessions WHERE user_id = ?', id);
+    if (active !== undefined && !active) revokeSessions(id);
   });
   res.json({ ok: true, message: 'Saqlandi' });
 });

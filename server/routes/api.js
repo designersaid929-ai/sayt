@@ -1,7 +1,7 @@
 import express from 'express';
 import { one, all, run } from '../db.js';
 import {
-  authenticate, startSession, endSession, requireRole, rateLimit, passwordProblem, hashPassword, verifyPassword,
+  authenticate, startSession, endSession, requireRole, rateLimit, passwordProblem, hashPassword, verifyPassword, revokeSessions,
 } from '../auth.js';
 import { validateValue } from '../validate.js';
 import { TIME_OPTIONS } from '../resources.js';
@@ -101,6 +101,9 @@ router.put('/auth/password', requireRole('admin', 'manager', 'student'), (req, r
   const problem = passwordProblem(next);
   if (problem) return res.status(422).json({ error: problem, fields: { next: problem } });
   run('UPDATE users SET password_hash = ? WHERE id = ?', hashPassword(next), req.user.id);
+  // boshqa qurilmalardagi sessiyalar yopiladi, joriy qurilmada esa kirish saqlanadi
+  revokeSessions(req.user.id);
+  startSession(res, req.user.id);
   res.json({ ok: true, message: 'Parol muvaffaqiyatli o‘zgartirildi' });
 });
 

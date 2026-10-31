@@ -2,7 +2,7 @@
 // Login mavjud bo‘lsa, paroli va roli yangilanadi (unutilgan administrator parolini tiklash uchun).
 import { parseArgs } from 'node:util';
 import { one, run } from '../db.js';
-import { hashPassword, passwordProblem, loginProblem } from '../auth.js';
+import { hashPassword, passwordProblem, loginProblem, revokeSessions } from '../auth.js';
 
 const { values } = parseArgs({
   options: {
@@ -23,7 +23,7 @@ if (problem) {
 const existing = one('SELECT id FROM users WHERE login = ?', values.login);
 if (existing) {
   run('UPDATE users SET password_hash = ?, role = ?, active = 1 WHERE id = ?', hashPassword(values.password), values.role, existing.id);
-  run('DELETE FROM sessions WHERE user_id = ?', existing.id);
+  revokeSessions(existing.id);
   console.log(`“${values.login}” foydalanuvchisining paroli yangilandi.`);
 } else {
   run('INSERT INTO users (role, full_name, login, password_hash) VALUES (?, ?, ?, ?)', values.role, values.name, values.login, hashPassword(values.password));
