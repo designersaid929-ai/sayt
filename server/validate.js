@@ -57,7 +57,7 @@ export function validateValue(field, raw) {
     }
     case 'money': {
       const n = Number(String(raw).replace(/[\s ]/g, ''));
-      if (!Number.isInteger(n) || n < 0 || n > 1e11) return { error: `«${label}» butun musbat son bo‘lishi kerak` };
+      if (!Number.isInteger(n) || n < 0 || n > 2e9) return { error: `«${label}» butun musbat son bo‘lishi kerak` };
       return { value: n };
     }
     case 'decimal': {

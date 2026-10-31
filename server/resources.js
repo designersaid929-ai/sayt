@@ -65,7 +65,7 @@ export const RESOURCES = {
   },
   students: {
     table: 'students', title: 'O‘quvchilar', singular: 'o‘quvchi', roles: STAFF,
-    order: 'full_name COLLATE NOCASE', label: "full_name || CASE WHEN phone <> '' THEN ' · ' || phone ELSE '' END",
+    order: 'lower(full_name)', label: "full_name || CASE WHEN phone <> '' THEN ' · ' || phone ELSE '' END",
     extraSelect: '(SELECT login FROM users WHERE users.id = students.user_id) AS account_login',
     fields: [
       { key: 'full_name', label: 'Ism va familiya', type: 'text', required: true, max: 120 },
@@ -78,7 +78,7 @@ export const RESOURCES = {
     listLabels: { account_login: 'Kabinet logini' },
   },
   groups: {
-    table: 'study_groups', title: 'Guruhlar', singular: 'guruh', roles: STAFF, order: 'active DESC, name COLLATE NOCASE', label: 'name',
+    table: 'study_groups', title: 'Guruhlar', singular: 'guruh', roles: STAFF, order: 'active DESC, lower(name)', label: 'name',
     fields: [
       { key: 'name', label: 'Guruh nomi', type: 'text', required: true, max: 80, placeholder: 'Masalan: IELTS-1 (kechki)' },
       { key: 'course_id', label: 'Kurs', type: 'ref', ref: 'courses', filter: true },

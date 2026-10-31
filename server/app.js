@@ -1,7 +1,8 @@
 import express from 'express';
 import compression from 'compression';
 import path from 'node:path';
-import { PUBLIC_DIR, UPLOAD_DIR, IS_PROD, TRUST_PROXY, SITE_URL } from './config.js';
+import { PUBLIC_DIR, IS_PROD, TRUST_PROXY, SITE_URL } from './config.js';
+import { one, migrate } from './db.js';
 import { loadUser, csrfGuard } from './auth.js';
 import { HttpError } from './validate.js';
 import { seed } from './seed.js';
@@ -9,7 +10,9 @@ import apiRoutes from './routes/api.js';
 import adminRoutes from './routes/admin.js';
 import pageRoutes, { notFound } from './routes/pages.js';
 
-seed();
+// Jadvallarni yaratish/yangilash va boshlang‘ich ma’lumotlar (har bir server ishga tushganda tekshiriladi)
+await migrate();
+await seed();
 
 const app = express();
 app.disable('x-powered-by');
@@ -45,7 +48,14 @@ app.use(compression());
 
 const staticOpts = { index: false, maxAge: IS_PROD ? '30d' : 0 };
 app.use(express.static(PUBLIC_DIR, { ...staticOpts, extensions: [] }));
-app.use('/uploads', express.static(UPLOAD_DIR, { index: false, maxAge: '30d', immutable: true }));
+// Yuklangan rasmlar bazada saqlanadi; nomi tasodifiy va o‘zgarmas, shuning uchun uzoq keshlanadi
+app.get('/uploads/:name', async (req, res, next) => {
+  if (!/^[a-z0-9]+\.(png|jpe?g|webp)$/.test(req.params.name)) return next();
+  const file = await one('SELECT mime, data FROM files WHERE name = ?', req.params.name);
+  if (!file) return next();
+  res.set({ 'Content-Type': file.mime, 'Cache-Control': 'public, max-age=31536000, immutable' });
+  res.send(file.data);
+});
 
 app.use('/api/admin/upload', express.json({ limit: '6mb' }));
 app.use('/api', express.json({ limit: '100kb' }), csrfGuard, loadUser);

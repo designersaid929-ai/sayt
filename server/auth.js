@@ -53,8 +53,8 @@ function setCookie(res, value, maxAgeSec) {
   res.setHeader('Set-Cookie', parts.join('; '));
 }
 
-export function authenticate(login, password) {
-  const user = one('SELECT * FROM users WHERE login = ? AND active = 1', String(login));
+export async function authenticate(login, password) {
+  const user = await one('SELECT * FROM users WHERE lower(login) = lower(?) AND active = 1', String(login));
   const ok = verifyPassword(String(password), user ? user.password_hash : DUMMY_HASH);
   return ok && user ? user : null;
 }
@@ -71,6 +71,7 @@ function loadSecret() {
     return fs.readFileSync(file, 'utf8').trim();
   } catch {
     const secret = crypto.randomBytes(32).toString('base64url');
+    fs.mkdirSync(DATA_DIR, { recursive: true });
     fs.writeFileSync(file, secret, { mode: 0o600 });
     return secret;
   }
@@ -78,8 +79,8 @@ function loadSecret() {
 const SECRET = loadSecret();
 const sign = (payload) => crypto.createHmac('sha256', SECRET).update(payload).digest('base64url');
 
-export function startSession(res, userId) {
-  const user = one('SELECT token_version FROM users WHERE id = ?', userId);
+export async function startSession(res, userId) {
+  const user = await one('SELECT token_version FROM users WHERE id = ?', userId);
   const ttl = SESSION_DAYS * 86400;
   const payload = `${userId}.${user.token_version}.${Date.now() + ttl * 1000}`;
   setCookie(res, `${payload}.${sign(payload)}`, ttl);
@@ -90,8 +91,8 @@ export function endSession(_req, res) {
 }
 
 /** Foydalanuvchining barcha ochiq sessiyalarini bekor qiladi. */
-export function revokeSessions(userId) {
-  run('UPDATE users SET token_version = token_version + 1 WHERE id = ?', userId);
+export async function revokeSessions(userId) {
+  await run('UPDATE users SET token_version = token_version + 1 WHERE id = ?', userId);
 }
 
 function verifyToken(token) {
@@ -104,10 +105,10 @@ function verifyToken(token) {
   return { userId: Number(m[1]), version: Number(m[2]) };
 }
 
-export function loadUser(req, _res, next) {
+export async function loadUser(req, _res, next) {
   const t = verifyToken(parseCookies(req.headers.cookie)[COOKIE]);
   req.user = t
-    ? one('SELECT id, role, full_name, login FROM users WHERE id = ? AND token_version = ? AND active = 1', t.userId, t.version) ?? null
+    ? (await one('SELECT id, role, full_name, login FROM users WHERE id = ? AND token_version = ? AND active = 1', t.userId, t.version)) ?? null
     : null;
   next();
 }

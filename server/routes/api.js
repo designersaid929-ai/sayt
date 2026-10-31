@@ -22,7 +22,7 @@ const APPLICATION_FIELDS = [
 router.post(
   '/applications',
   rateLimit({ windowMs: 10 * 60_000, max: 5, message: 'Siz yaqinda bir nechta ariza yubordingiz. Birozdan so‘ng qayta urinib ko‘ring.' }),
-  (req, res) => {
+  async (req, res) => {
     const body = req.body ?? {};
     // Botlar uchun yashirin maydon: to‘ldirilgan bo‘lsa, jimgina qabul qilgandek javob beramiz
     if (body.website) return res.json({ ok: true });
@@ -40,7 +40,10 @@ router.post(
     if (body.course === 'consult') {
       // maslahat so‘rovi — kurs tanlanmagan
     } else {
-      const course = one('SELECT id, title FROM courses WHERE id = ? AND published = 1', Number(body.course) || 0);
+      const courseNum = Number(body.course);
+      const course = Number.isInteger(courseNum) && courseNum > 0 && courseNum < 2 ** 31
+        ? await one('SELECT id, title FROM courses WHERE id = ? AND published = 1', courseNum)
+        : null;
       if (course) {
         courseId = course.id;
         courseTitle = course.title;
@@ -51,7 +54,7 @@ router.post(
 
     if (Object.keys(errors).length) return res.status(422).json({ error: 'Ma’lumotlarni tekshiring', fields: errors });
 
-    run(
+    await run(
       `INSERT INTO applications (full_name, phone, course_id, course_title, preferred_time, comment)
        VALUES (?, ?, ?, ?, ?, ?)`,
       values.full_name, values.phone, courseId, courseTitle, values.preferred_time, values.comment,
@@ -60,8 +63,8 @@ router.post(
   },
 );
 
-router.get('/site', (_req, res) => {
-  const s = getSettings();
+router.get('/site', async (_req, res) => {
+  const s = await getSettings();
   res.json({ site_name: s.site_name, logo: logoSources(s) });
 });
 
@@ -70,14 +73,14 @@ router.get('/site', (_req, res) => {
 router.post(
   '/auth/login',
   rateLimit({ windowMs: 15 * 60_000, max: 10, message: 'Juda ko‘p urinish. 15 daqiqadan so‘ng qayta urinib ko‘ring.' }),
-  (req, res) => {
+  async (req, res) => {
     const { login, password } = req.body ?? {};
     if (typeof login !== 'string' || typeof password !== 'string' || !login || !password) {
       return res.status(422).json({ error: 'Login va parolni kiriting' });
     }
-    const user = authenticate(login.trim(), password);
+    const user = await authenticate(login.trim(), password);
     if (!user) return res.status(401).json({ error: 'Login yoki parol noto‘g‘ri' });
-    startSession(res, user.id);
+    await startSession(res, user.id);
     res.json({ user: { id: user.id, role: user.role, full_name: user.full_name, login: user.login } });
   },
 );
@@ -92,58 +95,58 @@ router.get('/auth/me', (req, res) => {
   res.json({ user: req.user });
 });
 
-router.put('/auth/password', requireRole('admin', 'manager', 'student'), (req, res) => {
+router.put('/auth/password', requireRole('admin', 'manager', 'student'), async (req, res) => {
   const { current, next } = req.body ?? {};
-  const row = one('SELECT password_hash FROM users WHERE id = ?', req.user.id);
+  const row = await one('SELECT password_hash FROM users WHERE id = ?', req.user.id);
   if (typeof current !== 'string' || !verifyPassword(current, row.password_hash)) {
     return res.status(422).json({ error: 'Joriy parol noto‘g‘ri', fields: { current: 'Joriy parol noto‘g‘ri' } });
   }
   const problem = passwordProblem(next);
   if (problem) return res.status(422).json({ error: problem, fields: { next: problem } });
-  run('UPDATE users SET password_hash = ? WHERE id = ?', hashPassword(next), req.user.id);
+  await run('UPDATE users SET password_hash = ? WHERE id = ?', hashPassword(next), req.user.id);
   // boshqa qurilmalardagi sessiyalar yopiladi, joriy qurilmada esa kirish saqlanadi
-  revokeSessions(req.user.id);
-  startSession(res, req.user.id);
+  await revokeSessions(req.user.id);
+  await startSession(res, req.user.id);
   res.json({ ok: true, message: 'Parol muvaffaqiyatli o‘zgartirildi' });
 });
 
 /* ---------- O‘quvchi kabineti ---------- */
 
-router.get('/cabinet', requireRole('student'), (req, res) => {
+router.get('/cabinet', requireRole('student'), async (req, res) => {
   res.set('Cache-Control', 'no-store');
-  const student = one('SELECT id, full_name, phone, status FROM students WHERE user_id = ?', req.user.id);
+  const student = await one('SELECT id, full_name, phone, status FROM students WHERE user_id = ?', req.user.id);
   if (!student) return res.json({ student: null });
 
-  const groups = all(
+  const groups = await all(
     `SELECT g.id, g.name, g.days, g.start_time, g.end_time, g.room, c.title AS course, t.full_name AS teacher
      FROM group_students gs JOIN study_groups g ON g.id = gs.group_id
      LEFT JOIN courses c ON c.id = g.course_id LEFT JOIN teachers t ON t.id = g.teacher_id
      WHERE gs.student_id = ? AND g.active = 1 ORDER BY g.name`,
     student.id,
   );
-  const attendance = all(
+  const attendance = await all(
     `SELECT l.date, l.topic, a.status, g.name AS group_name
      FROM attendance a JOIN lessons l ON l.id = a.lesson_id JOIN study_groups g ON g.id = l.group_id
      WHERE a.student_id = ? ORDER BY l.date DESC LIMIT 200`,
     student.id,
   );
-  const tests = all(
+  const tests = await all(
     `SELECT t.title, t.score, t.max_score, t.taken_at, g.name AS group_name
      FROM tests t LEFT JOIN study_groups g ON g.id = t.group_id WHERE t.student_id = ? ORDER BY t.taken_at DESC`,
     student.id,
   );
-  const homework = all(
+  const homework = await all(
     `SELECT h.title, h.description, h.due_date, g.name AS group_name
      FROM homework h JOIN study_groups g ON g.id = h.group_id
      WHERE h.group_id IN (SELECT group_id FROM group_students WHERE student_id = ?)
      ORDER BY h.due_date IS NULL, h.due_date DESC, h.id DESC LIMIT 100`,
     student.id,
   );
-  const payments = all(
+  const payments = await all(
     'SELECT amount, paid_at, period, method FROM payments WHERE student_id = ? ORDER BY paid_at DESC, id DESC',
     student.id,
   );
-  const materials = all(
+  const materials = await all(
     `SELECT m.title, m.url, m.description, g.name AS group_name
      FROM materials m LEFT JOIN study_groups g ON g.id = m.group_id
      WHERE m.group_id IS NULL OR m.group_id IN (SELECT group_id FROM group_students WHERE student_id = ?)

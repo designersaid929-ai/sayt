@@ -1,33 +1,39 @@
-import { DatabaseSync } from 'node:sqlite';
-import fs from 'node:fs';
-import path from 'node:path';
-import { DATA_DIR } from './config.js';
+import postgres from 'postgres';
+import { DATABASE_URL, DB_SCHEMA, ON_VERCEL } from './config.js';
 
-fs.mkdirSync(DATA_DIR, { recursive: true });
+if (!DATABASE_URL) {
+  throw new Error('DATABASE_URL o‘rnatilmagan. .env fayliga Supabase (Postgres) ulanish satrini yozing — README’ga qarang.');
+}
 
-export const db = new DatabaseSync(path.join(DATA_DIR, 'markaz.db'));
-db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
+// Supabase Supavisor (transaction mode) prepared statement’larni qo‘llamaydi — prepare: false
+export const sql = postgres(DATABASE_URL, {
+  prepare: false,
+  max: ON_VERCEL ? 1 : 5,
+  idle_timeout: 20,
+  connect_timeout: 15,
+  onnotice: () => {},
+  connection: { search_path: DB_SCHEMA },
+});
+
+const NOW = "to_char(now() at time zone 'utc', 'YYYY-MM-DD HH24:MI:SS')";
 
 const MIGRATIONS = [
   `
   CREATE TABLE users (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     role TEXT NOT NULL CHECK (role IN ('admin','manager','student')),
     full_name TEXT NOT NULL,
-    login TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    login TEXT NOT NULL,
     password_hash TEXT NOT NULL,
     active INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    token_version INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT ${NOW}
   );
-  CREATE TABLE sessions (
-    token_hash TEXT PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    expires_at INTEGER NOT NULL
-  );
+  CREATE UNIQUE INDEX users_login_ci ON users (lower(login));
   CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL DEFAULT '');
 
   CREATE TABLE courses (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     slug TEXT NOT NULL UNIQUE,
     title TEXT NOT NULL,
     short_desc TEXT NOT NULL DEFAULT '',
@@ -37,10 +43,10 @@ const MIGRATIONS = [
     icon TEXT NOT NULL DEFAULT 'book',
     sort INTEGER,
     published INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT ${NOW}
   );
   CREATE TABLE teachers (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     full_name TEXT NOT NULL,
     specialty TEXT NOT NULL DEFAULT '',
     experience TEXT NOT NULL DEFAULT '',
@@ -50,17 +56,17 @@ const MIGRATIONS = [
     published INTEGER NOT NULL DEFAULT 1
   );
   CREATE TABLE students (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     full_name TEXT NOT NULL,
     phone TEXT NOT NULL DEFAULT '',
     parent_phone TEXT NOT NULL DEFAULT '',
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','paused','left')),
     notes TEXT NOT NULL DEFAULT '',
     user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE SET NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT ${NOW}
   );
   CREATE TABLE study_groups (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     course_id INTEGER REFERENCES courses(id) ON DELETE SET NULL,
     teacher_id INTEGER REFERENCES teachers(id) ON DELETE SET NULL,
@@ -77,7 +83,7 @@ const MIGRATIONS = [
     PRIMARY KEY (group_id, student_id)
   );
   CREATE TABLE lessons (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     group_id INTEGER NOT NULL REFERENCES study_groups(id) ON DELETE CASCADE,
     date TEXT NOT NULL,
     topic TEXT NOT NULL DEFAULT '',
@@ -90,7 +96,7 @@ const MIGRATIONS = [
     PRIMARY KEY (lesson_id, student_id)
   );
   CREATE TABLE payments (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
     amount INTEGER NOT NULL,
     paid_at TEXT NOT NULL,
@@ -98,10 +104,10 @@ const MIGRATIONS = [
     method TEXT NOT NULL DEFAULT 'cash',
     note TEXT NOT NULL DEFAULT '',
     created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT ${NOW}
   );
   CREATE TABLE applications (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     full_name TEXT NOT NULL,
     phone TEXT NOT NULL,
     course_id INTEGER REFERENCES courses(id) ON DELETE SET NULL,
@@ -110,10 +116,10 @@ const MIGRATIONS = [
     comment TEXT NOT NULL DEFAULT '',
     status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','contacted','enrolled','rejected')),
     admin_note TEXT NOT NULL DEFAULT '',
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT ${NOW}
   );
   CREATE TABLE results (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     student_name TEXT NOT NULL,
     exam TEXT NOT NULL,
     score TEXT NOT NULL DEFAULT '',
@@ -124,7 +130,7 @@ const MIGRATIONS = [
     published INTEGER NOT NULL DEFAULT 1
   );
   CREATE TABLE testimonials (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     author TEXT NOT NULL,
     role_text TEXT NOT NULL DEFAULT '',
     text TEXT NOT NULL DEFAULT '',
@@ -134,7 +140,7 @@ const MIGRATIONS = [
     published INTEGER NOT NULL DEFAULT 1
   );
   CREATE TABLE branches (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     address TEXT NOT NULL DEFAULT '',
     phone TEXT NOT NULL DEFAULT '',
@@ -143,62 +149,79 @@ const MIGRATIONS = [
     sort INTEGER
   );
   CREATE TABLE tests (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
     group_id INTEGER REFERENCES study_groups(id) ON DELETE SET NULL,
     title TEXT NOT NULL,
-    score REAL NOT NULL,
-    max_score REAL NOT NULL DEFAULT 100,
+    score DOUBLE PRECISION NOT NULL,
+    max_score DOUBLE PRECISION NOT NULL DEFAULT 100,
     taken_at TEXT NOT NULL
   );
   CREATE TABLE homework (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     group_id INTEGER NOT NULL REFERENCES study_groups(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
     due_date TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT ${NOW}
   );
   CREATE TABLE materials (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     group_id INTEGER REFERENCES study_groups(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     url TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT ${NOW}
+  );
+  -- Yuklangan rasmlar ham bazada saqlanadi (serverda doimiy disk bo‘lmasa ham yo‘qolmaydi)
+  CREATE TABLE files (
+    name TEXT PRIMARY KEY,
+    mime TEXT NOT NULL,
+    data BYTEA NOT NULL,
+    created_at TEXT NOT NULL DEFAULT ${NOW}
   );
   CREATE INDEX idx_applications_status ON applications(status);
   CREATE INDEX idx_payments_student ON payments(student_id);
   CREATE INDEX idx_tests_student ON tests(student_id);
   CREATE INDEX idx_group_students_student ON group_students(student_id);
   `,
-  // 2: sessiyalar imzolangan cookie’ga o‘tkazildi
-  `
-  ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0;
-  DROP TABLE sessions;
-  `,
 ];
 
-export function tx(fn) {
-  db.exec('BEGIN');
-  try {
-    const result = fn();
-    db.exec('COMMIT');
-    return result;
-  } catch (err) {
-    db.exec('ROLLBACK');
-    throw err;
-  }
+/** `?` belgilarini Postgres’ning $1, $2 ... ko‘rinishiga o‘tkazadi. */
+function toPg(query) {
+  let i = 0;
+  return query.replace(/\?/g, () => `$${++i}`);
 }
 
-export const one = (sql, ...params) => db.prepare(sql).get(...params);
-export const all = (sql, ...params) => db.prepare(sql).all(...params);
-export const run = (sql, ...params) => db.prepare(sql).run(...params);
+function queries(s) {
+  const exec = (q, params) => s.unsafe(toPg(q), params.map((p) => (p === undefined ? null : p)));
+  return {
+    all: (q, ...p) => exec(q, p),
+    one: async (q, ...p) => (await exec(q, p))[0],
+    run: (q, ...p) => exec(q, p),
+  };
+}
 
-const { user_version: version } = one('PRAGMA user_version');
-for (let v = version; v < MIGRATIONS.length; v++) {
-  tx(() => {
-    db.exec(MIGRATIONS[v]);
-    db.exec(`PRAGMA user_version = ${v + 1}`);
+export const { all, one, run } = queries(sql);
+
+/** Tranzaksiya: fn({ all, one, run }) ichidagi so‘rovlar bitta tranzaksiyada bajariladi. */
+export function tx(fn) {
+  return sql.begin((t) => fn(queries(t)));
+}
+
+/** Jadvallarni yaratadi/yangilaydi. Bir vaqtda bir nechta server ishga tushsa ham xavfsiz (advisory lock). */
+export async function migrate() {
+  if (!/^[a-z_][a-z0-9_]*$/.test(DB_SCHEMA)) throw new Error(`DB_SCHEMA noto‘g‘ri: ${DB_SCHEMA}`);
+  await sql.unsafe(`CREATE SCHEMA IF NOT EXISTS ${DB_SCHEMA}`);
+  await sql.begin(async (t) => {
+    await t`SELECT pg_advisory_xact_lock(482917)`;
+    await t.unsafe('CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)');
+    const row = (await t.unsafe('SELECT version FROM schema_version'))[0];
+    let version = row?.version ?? 0;
+    if (!row) await t.unsafe('INSERT INTO schema_version (version) VALUES (0)');
+    for (; version < MIGRATIONS.length; version++) {
+      await t.unsafe(MIGRATIONS[version]);
+      await t.unsafe('UPDATE schema_version SET version = $1', [version + 1]);
+    }
   });
 }

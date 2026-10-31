@@ -7,10 +7,10 @@ import * as views from '../views.js';
 
 const router = express.Router();
 
-function common() {
+async function common() {
   return {
-    s: getSettings(),
-    courses: all('SELECT * FROM courses WHERE published = 1 ORDER BY sort IS NULL, sort, id'),
+    s: await getSettings(),
+    courses: await all('SELECT * FROM courses WHERE published = 1 ORDER BY sort IS NULL, sort, id'),
   };
 }
 
@@ -45,20 +45,20 @@ function send(res, opts) {
   res.type('html').send(views.layout(opts));
 }
 
-router.get('/', (req, res) => {
-  const c = common();
-  const data = { ...c, results: published.results(), teachers: published.teachers(), testimonials: published.testimonials(), branches: published.branches() };
+router.get('/', async (req, res) => {
+  const c = await common();
+  const data = { ...c, ...Object.fromEntries(await Promise.all(Object.entries(published).map(async ([k, fn]) => [k, await fn()]))) };
   send(res, { ...c, path: '/', body: views.homePage(data), jsonLd: organizationLd(c.s, data.branches), hero3d: true });
 });
 
-router.get('/kurslar', (req, res) => {
-  const c = common();
+router.get('/kurslar', async (req, res) => {
+  const c = await common();
   send(res, { ...c, path: '/kurslar', title: 'Kurslar', description: `Kurslarimiz: ${c.courses.map((x) => x.title).join(', ')}.`, body: views.coursesPage(c) });
 });
 
-router.get('/kurslar/:slug', (req, res, next) => {
-  const c = common();
-  const course = one('SELECT * FROM courses WHERE slug = ? AND published = 1', req.params.slug);
+router.get('/kurslar/:slug', async (req, res, next) => {
+  const c = await common();
+  const course = await one('SELECT * FROM courses WHERE slug = ? AND published = 1', req.params.slug);
   if (!course) return next();
   send(res, {
     ...c, path: `/kurslar/${course.slug}`, title: course.title, description: course.short_desc || undefined,
@@ -70,42 +70,42 @@ router.get('/kurslar/:slug', (req, res, next) => {
   });
 });
 
-router.get('/ustozlar', (req, res) => {
-  const c = common();
-  send(res, { ...c, path: '/ustozlar', title: 'Ustozlar', body: views.teachersPage({ teachers: published.teachers() }) });
+router.get('/ustozlar', async (req, res) => {
+  const c = await common();
+  send(res, { ...c, path: '/ustozlar', title: 'Ustozlar', body: views.teachersPage({ teachers: await published.teachers() }) });
 });
 
-router.get('/natijalar', (req, res) => {
-  const c = common();
-  send(res, { ...c, path: '/natijalar', title: 'Natijalar', body: views.resultsPage({ results: published.results() }) });
+router.get('/natijalar', async (req, res) => {
+  const c = await common();
+  send(res, { ...c, path: '/natijalar', title: 'Natijalar', body: views.resultsPage({ results: await published.results() }) });
 });
 
-router.get('/biz-haqimizda', (req, res) => {
-  const c = common();
-  send(res, { ...c, path: '/biz-haqimizda', title: 'Biz haqimizda', body: views.aboutPage({ ...c, testimonials: published.testimonials() }) });
+router.get('/biz-haqimizda', async (req, res) => {
+  const c = await common();
+  send(res, { ...c, path: '/biz-haqimizda', title: 'Biz haqimizda', body: views.aboutPage({ ...c, testimonials: await published.testimonials() }) });
 });
 
-router.get('/aloqa', (req, res) => {
-  const c = common();
-  const branches = published.branches();
+router.get('/aloqa', async (req, res) => {
+  const c = await common();
+  const branches = await published.branches();
   send(res, { ...c, path: '/aloqa', title: 'Aloqa', body: views.contactPage({ ...c, branches }), jsonLd: organizationLd(c.s, branches) });
 });
 
-router.get('/robots.txt', (req, res) => {
+router.get('/robots.txt', async (req, res) => {
   res.type('text/plain').send(`User-agent: *\nDisallow: /admin\nDisallow: /kabinet\nDisallow: /api/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 });
 
-router.get('/sitemap.xml', (req, res) => {
+router.get('/sitemap.xml', async (req, res) => {
   const paths = ['/', '/kurslar', '/ustozlar', '/natijalar', '/biz-haqimizda', '/aloqa',
-    ...all('SELECT slug FROM courses WHERE published = 1').map((r) => `/kurslar/${r.slug}`)];
+    ...(await all('SELECT slug FROM courses WHERE published = 1')).map((r) => `/kurslar/${r.slug}`)];
   res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${paths.map((p) => `  <url><loc>${SITE_URL}${p}</loc></url>`).join('\n')}
 </urlset>`);
 });
 
-export function notFound(req, res) {
-  const c = common();
+export async function notFound(req, res) {
+  const c = await common();
   res.status(404);
   send(res, { ...c, path: req.path, title: 'Sahifa topilmadi', body: views.notFoundPage(), noindex: true });
 }

@@ -1,4 +1,4 @@
-import { db, tx } from './db.js';
+import { all, tx } from './db.js';
 
 export const SETTINGS_FIELDS = [
   { key: 'site_name', label: 'Markaz nomi', type: 'text', required: true, max: 80, default: 'BilimZiyo o‘quv markazi' },
@@ -29,21 +29,27 @@ export const SETTINGS_FIELDS = [
   },
 ];
 
+// Qisqa muddatli kesh: bir nechta server nusxasida ham o‘zgarishlar tez orada ko‘rinadi
+const TTL_MS = 15_000;
 let cache = null;
+let cachedAt = 0;
 
-export function getSettings() {
-  if (!cache) {
-    const stored = Object.fromEntries(db.prepare('SELECT key, value FROM settings').all().map((r) => [r.key, r.value]));
-    cache = {};
-    for (const f of SETTINGS_FIELDS) cache[f.key] = stored[f.key] ?? f.default ?? '';
+export async function getSettings() {
+  if (!cache || Date.now() - cachedAt > TTL_MS) {
+    const stored = Object.fromEntries((await all('SELECT key, value FROM settings')).map((r) => [r.key, r.value]));
+    const next = {};
+    for (const f of SETTINGS_FIELDS) next[f.key] = stored[f.key] ?? f.default ?? '';
+    cache = next;
+    cachedAt = Date.now();
   }
   return cache;
 }
 
-export function saveSettings(values) {
-  const stmt = db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value');
-  tx(() => {
-    for (const [key, value] of Object.entries(values)) stmt.run(key, String(value ?? ''));
+export async function saveSettings(values) {
+  await tx(async (q) => {
+    for (const [key, value] of Object.entries(values)) {
+      await q.run('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value', key, String(value ?? ''));
+    }
   });
   cache = null;
 }

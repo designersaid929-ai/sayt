@@ -9,13 +9,18 @@ Dizayn tizimi va sahifalar xaritasi: [docs/DIZAYN.md](docs/DIZAYN.md).
 
 | Qism | Texnologiya |
 |---|---|
-| Server | Node.js 22.13+ (tavsiya: 24 LTS), Express 5 |
-| Ma’lumotlar bazasi | SQLite (Node’ning o‘rnatilgan `node:sqlite` moduli, WAL rejimi) — alohida server kerak emas |
+| Server | Node.js 24, Express 5 |
+| Ma’lumotlar bazasi | Supabase Postgres (`postgres` drayveri, Supavisor pooler). Yuklangan rasmlar ham bazada saqlanadi |
+| Hosting | Vercel (`api/index.js` — butun ilova bitta serverless funksiya) |
 | Sahifalar | Serverda tayyorlanadigan HTML (SEO uchun), toza CSS, kichik JS |
 | 3D | Three.js, esbuild bilan yig‘ilgan (`public/js/hero3d.js`) |
 | Xavfsizlik | scrypt parol xeshi, HttpOnly sessiya cookie, CSP, CSRF himoyasi, so‘rovlar chegarasi |
 
 ## Ishga tushirish (kompyuterda)
+
+`.env.example` dan `.env` yarating va `DATABASE_URL` ga Supabase ulanish satrini yozing.
+Lokal ishlash uchun alohida sxema tavsiya etiladi (`DB_SCHEMA=bilimziyo_dev`) — jonli saytdagi ma’lumotlarga tegmaydi.
+Jadvallar birinchi ishga tushishda avtomatik yaratiladi.
 
 ```bash
 npm install
@@ -62,63 +67,28 @@ foydalanuvchi tanlovi brauzerda eslab qolinadi. Ranglar `public/css/site.css` bo
 O‘quvchiga kabinet ochish: **O‘quvchilar** → o‘quvchini tanlang → **Kabinet ochish** (login va parol beriladi).
 Arizani o‘quvchiga aylantirish: **Arizalar** → arizani oching → **O‘quvchiga aylantirish**.
 
-## Serverga joylash (production)
+## Joylash: Vercel + Supabase
 
-Talab: Linux server (VPS) yoki doimiy diskli hosting, Node.js 22.13+.
+Kod GitHub’dagi `main` tarmog‘iga push qilinganda Vercel uni avtomatik joylaydi. Ma’lumotlar Supabase’da doimiy saqlanadi.
 
-```bash
-cp .env.example .env
-```
-
-`.env` da `SITE_URL` (masalan `https://markaz.uz`), `ADMIN_PASSWORD` va kerak bo‘lsa `PORT` ni to‘ldiring. So‘ng:
-
-```bash
-npm ci --omit=dev
-```
-
-```bash
-npm start
-```
-
-Doimiy ishlashi uchun `pm2` yoki `systemd` dan foydalaning:
-
-```bash
-npx pm2 start npm --name markaz -- start
-```
-
-HTTPS uchun oldiga Nginx yoki Caddy qo‘ying va `.env` da `TRUST_PROXY=1` qiling. Caddy misoli (`/etc/caddy/Caddyfile`):
-
-```
-markaz.uz {
-    reverse_proxy 127.0.0.1:3000
-}
-```
-
-Muhim:
-
-* `data/` (baza) va `uploads/` (rasmlar) papkalari **doimiy diskda** bo‘lishi shart. Diski vaqtinchalik bo‘lgan hostinglarda
-  (masalan, Vercel, Netlify) bu sayt ishlamaydi; Railway/Render’da “volume/disk” ulab, `DATA_DIR` va `UPLOAD_DIR` ni shu diskka yo‘naltiring.
-* Zaxira nusxa: `data/markaz.db` va `uploads/` ni har kuni nusxalang. Bazani ishlab turgan holda xavfsiz nusxalash:
-  `sqlite3 data/markaz.db ".backup backup-$(date +%F).db"`.
-* Production rejimida (`NODE_ENV=production`) cookie faqat HTTPS orqali yuboriladi — sayt HTTPS’da ochilishi kerak.
-
-## Vercel’da namoyish
-
-Loyiha Vercel’ga ham joylanadi (`vercel.json`, `api/index.js`), lekin **faqat namoyish uchun**: Vercel’da doimiy disk yo‘q,
-shuning uchun baza va yuklangan rasmlar `/tmp` da turadi va server “uxlab” qolganda yoki qayta joylanganda o‘chib ketadi.
-Admin panelda bu haqda ogohlantirish chiqadi. Kerakli muhit o‘zgaruvchilari:
+Vercel’dagi muhit o‘zgaruvchilari:
 
 | O‘zgaruvchi | Qiymat |
 |---|---|
-| `DATA_DIR` | `/tmp/data` |
-| `UPLOAD_DIR` | `/tmp/uploads` |
-| `ADMIN_LOGIN`, `ADMIN_PASSWORD` | administrator kirish ma’lumotlari (har ishga tushganda qayta yaratiladi) |
+| `DATABASE_URL` | Supabase pooler ulanish satri (`…pooler.supabase.com:6543/postgres`) |
+| `DB_SCHEMA` | `bilimziyo` |
+| `SESSION_SECRET` | uzun tasodifiy satr (sessiya cookie’larini imzolash uchun) |
+| `ADMIN_LOGIN`, `ADMIN_PASSWORD` | birinchi administrator (faqat baza bo‘sh bo‘lganda yaratiladi; keyin parol panel orqali o‘zgartiriladi) |
 | `NODE_ENV` | `production` |
-| `TRUST_PROXY` | `1` |
-| `DEMO_MODE` | `1` |
-| `SITE_URL` | Vercel manzili |
+| `SITE_URL` | saytning ochiq manzili |
 
-Haqiqiy ish uchun doimiy diskli hostingdan foydalaning (yuqoridagi bo‘lim).
+Muhim:
+
+* Sayt bazaga alohida, cheklangan huquqli `bilimziyo_app` foydalanuvchisi bilan ulanadi. Jadvallar Supabase’ning ochiq API’si
+  (PostgREST) ko‘rmaydigan `bilimziyo` sxemasida turadi.
+* Zaxira nusxa: Supabase → Database → Backups (bepul rejada kunlik), yoki `pg_dump` bilan `bilimziyo` sxemasini nusxalang.
+* Production rejimida cookie faqat HTTPS orqali yuboriladi.
+* Boshqa hostingda (VPS, Railway) ham ishlaydi: `.env` ni to‘ldirib, `npm ci --omit=dev` va `npm start`.
 
 ## 3D sahnani o‘zgartirish
 
@@ -136,7 +106,7 @@ sifat pasaytiriladi; `prefers-reduced-motion` yoqilgan bo‘lsa harakatsiz bitta
 ```
 server/
   index.js          Express ilovasi, xavfsizlik sarlavhalari, marshrutlar
-  db.js             SQLite ulanishi va migratsiyalar
+  db.js             Postgres (Supabase) ulanishi va migratsiyalar
   auth.js           Parollar, sessiyalar, rollar, CSRF, so‘rovlar chegarasi
   resources.js      Admin bo‘limlari ta’rifi (maydonlar = tekshiruv + shakllar uchun yagona manba)
   validate.js       Maydonlarni tekshirish (o‘zbekcha xato xabarlari)
