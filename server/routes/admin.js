@@ -35,6 +35,7 @@ router.get('/meta', (req, res) => {
     resources,
     settings: req.user.role === 'admin' ? SETTINGS_FIELDS : null,
     today: today(),
+    demo: process.env.DEMO_MODE === '1',
   });
 });
 

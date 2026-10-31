@@ -102,6 +102,24 @@ Muhim:
   `sqlite3 data/markaz.db ".backup backup-$(date +%F).db"`.
 * Production rejimida (`NODE_ENV=production`) cookie faqat HTTPS orqali yuboriladi — sayt HTTPS’da ochilishi kerak.
 
+## Vercel’da namoyish
+
+Loyiha Vercel’ga ham joylanadi (, ), lekin **faqat namoyish uchun**: Vercel’da doimiy disk yo‘q,
+shuning uchun baza va yuklangan rasmlar  da turadi va server “uxlab” qolganda yoki qayta joylanganda o‘chib ketadi.
+Admin panelda bu haqda ogohlantirish chiqadi. Kerakli muhit o‘zgaruvchilari:
+
+| O‘zgaruvchi | Qiymat |
+|---|---|
+|  |  |
+|  |  |
+| ,  | administrator kirish ma’lumotlari (har ishga tushganda qayta yaratiladi) |
+|  |  |
+|  |  |
+|  |  |
+|  | Vercel manzili |
+
+Haqiqiy ish uchun doimiy diskli hostingdan foydalaning (yuqoridagi bo‘lim).
+
 ## 3D sahnani o‘zgartirish
 
 Manba: `src/hero3d.js`. O‘zgartirgandan keyin qayta yig‘ing (natija `public/js/hero3d.js` ga yoziladi):

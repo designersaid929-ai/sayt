@@ -73,7 +73,8 @@
       UI.themeButton(),
       h('a', { class: 'btn btn-sm', href: '/', target: '_blank' }, 'Saytni ko‘rish'),
       h('button', { class: 'btn btn-sm', onclick: UI.logout }, 'Chiqish'));
-    root.replaceChildren(h('div', { class: 'layout' }, sidebar, h('div', { class: 'main' }, topbar, content)));
+    const demo = meta.demo ? h('p', { class: 'alert', style: 'margin:16px 28px 0' }, 'Namoyish rejimi: bu serverda ma’lumotlar doimiy saqlanmaydi — arizalar, o‘quvchilar va yuklangan rasmlar vaqti-vaqti bilan o‘chib ketadi.') : null;
+    root.replaceChildren(h('div', { class: 'layout' }, sidebar, h('div', { class: 'main' }, topbar, demo, content)));
     els = { sidebar, title, content };
     refreshBadge();
   }
