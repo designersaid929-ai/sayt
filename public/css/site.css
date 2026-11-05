@@ -820,3 +820,12 @@ body.modal-open { overflow: hidden; }
   border: 1px solid var(--line); box-shadow: var(--shadow); aspect-ratio: 4 / 3; background: var(--surface-solid);
 }
 .main-map iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+/* Bosh sahifa aloqa bloki: chapda xarita, o‘ngda shakl (balandligi teng) */
+.home-contact { align-items: stretch; }
+.home-map { display: flex; }
+.home-map .main-map { margin: 0; flex: 1; aspect-ratio: auto; min-height: 420px; }
+.form-title { font-size: clamp(1.6rem, 2.6vw, 2.1rem); margin-bottom: 22px; }
+@media (max-width: 960px) {
+  .home-map .main-map { min-height: 320px; aspect-ratio: 4 / 3; }
+}

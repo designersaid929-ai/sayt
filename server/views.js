@@ -509,15 +509,11 @@ ${faqSection(faqs)}
 ${ctaBand()}
 
 <section class="section" id="aloqa">
-  <div class="container contact-grid">
-    <div data-reveal>
-      ${sectionHead({ eyebrow: 'Aloqa', title: 'Biz bilan bog‘laning', lead: 'Savollaringiz bo‘lsa, qo‘ng‘iroq qiling yoki ariza qoldiring.' })}
-      ${info ? `<ul class="contact-list">${info}</ul>` : ''}
-      ${socials(s, 'socials socials-lg')}
-      ${mainMap(s)}
-      <a class="link-more" href="/aloqa">Filiallar va xarita ${icon('arrow')}</a>
-    </div>
-    <div class="form-card" data-reveal><h3 class="card-title">Ariza qoldiring</h3>${enrollForm(courses, { id: 'home', inline: true })}</div>
+  <div class="container contact-grid home-contact">
+    ${s.map_url
+    ? `<div class="home-map" data-reveal>${mainMap(s)}</div>`
+    : `<div data-reveal>${info ? `<ul class="contact-list">${info}</ul>` : ''}${socials(s, 'socials socials-lg')}</div>`}
+    <div class="form-card" data-reveal><h2 class="section-title form-title">Biz bilan bog‘laning</h2>${enrollForm(courses, { id: 'home', inline: true })}</div>
   </div>
 </section>`;
 }
