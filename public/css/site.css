@@ -742,3 +742,39 @@ body.modal-open { overflow: hidden; }
 .success-badge { background: linear-gradient(135deg, #3C9A2E, #7CC343); color: #fff; box-shadow: 0 0 0 10px rgba(124, 195, 67, .15), 0 0 40px rgba(124, 195, 67, .3); }
 .faq-item summary::after { background: linear-gradient(135deg, #3D8BF2, #57B9E8); color: #fff; }
 .contact-list .tone-icon, .footer-contacts .tone-icon { display: inline-grid; color: #fff; font-size: inherit; }
+
+/* ==========================================================================
+   Yagona rang: barcha belgilar saytning sariq rangida
+   ========================================================================== */
+.tone-blue, .tone-orange, .tone-green, .tone-dark, .tone-purple, .tone-cyan {
+  --tone-a: #FFF000;
+  --tone-b: #FFC93A;
+  --tone-ink: #020B24;          /* sariq fondagi belgi rangi */
+  --tone-text: #FFF000;         /* ✓✓ va raqamlar rangi */
+}
+[data-theme="light"] :is(.tone-blue, .tone-orange, .tone-green, .tone-dark, .tone-purple, .tone-cyan) {
+  --tone-text: #B98A00;         /* oq fonda o‘qilishi uchun to‘qroq sariq */
+}
+.tone-icon { color: var(--tone-ink); box-shadow: 0 10px 24px -12px rgba(255, 216, 74, .9), inset 0 1px 0 rgba(255, 255, 255, .5); }
+.tone-icon .ico,
+.contact-list .tone-icon, .footer-contacts .tone-icon,
+.contact-list.compact .tone-icon .ico, .footer-contacts .tone-icon .ico { color: var(--tone-ink); }
+.course-icon { box-shadow: 0 12px 26px -12px rgba(255, 216, 74, .9), inset 0 1px 0 rgba(255, 255, 255, .5); }
+/* Kurs belgilari sprite’da oltin gradient bilan chizilgan — sariq fonda to‘q rangga aylantiramiz */
+.course-icon-svg { filter: brightness(0) opacity(.88); }
+.dcheck, .tone-dark .dcheck { color: var(--tone-text, var(--accent)); }
+.hero-points .dcheck, .check-list .dcheck { color: var(--gold); }
+[data-theme="light"] .hero-points .dcheck, [data-theme="light"] .check-list .dcheck { color: #B98A00; }
+.course-cta, .tone-dark .course-cta { color: var(--navy); border: 0; box-shadow: 0 14px 30px -16px rgba(255, 216, 74, .9); }
+.course-cta:hover { box-shadow: 0 18px 38px -12px rgba(255, 216, 74, .8); filter: none; }
+.why-card:hover { box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .8), 0 0 50px -24px rgba(255, 240, 0, .5); }
+.stats-grid strong, .stats-grid .tone-dark strong {
+  background: none; color: var(--tone-text); -webkit-background-clip: border-box; background-clip: border-box;
+}
+/* Qolgan belgilar ham sariq */
+.avatar, [data-theme="light"] .avatar, [data-theme="light"] .avatar-sm {
+  background: linear-gradient(135deg, #FFF000, #FFC93A); color: var(--navy); box-shadow: 0 12px 24px -12px rgba(255, 216, 74, .9);
+}
+.faq-item summary::after { background: linear-gradient(135deg, #FFF000, #FFC93A); color: var(--navy); }
+.socials a:hover { background: linear-gradient(135deg, #FFF000, #FFC93A); color: var(--navy); }
+.success-badge { background: linear-gradient(135deg, #FFF000, #FFC93A); color: var(--navy); box-shadow: 0 0 0 10px rgba(255, 240, 0, .12), 0 0 40px rgba(255, 240, 0, .35); }
