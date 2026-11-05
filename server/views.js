@@ -462,9 +462,6 @@ export function homePage(d) {
         <button class="btn btn-ghost btn-lg" type="button" data-enroll="consult">Bepul maslahat olish</button>
         ${s.school_url ? `<a class="btn btn-ghost btn-lg" href="${esc(s.school_url)}" target="_blank" rel="noopener">Xususiy maktab ${icon('arrow')}</a>` : ''}
       </div>
-      <ul class="hero-points" data-reveal style="--d:320ms">
-        <li>${icon('dcheck', 'dcheck')}Individual yondashuv</li><li>${icon('dcheck', 'dcheck')}Qulay dars jadvali</li><li>${icon('dcheck', 'dcheck')}Bepul maslahat</li>
-      </ul>
     </div>
     <div class="hero-visual" aria-hidden="true">
       <div class="hero-halo"></div>
