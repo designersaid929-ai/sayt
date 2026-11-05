@@ -190,6 +190,17 @@ const MIGRATIONS = [
   CREATE INDEX idx_tests_student ON tests(student_id);
   CREATE INDEX idx_group_students_student ON group_students(student_id);
   `,
+  // 2: FAQ va arizadagi o‘qish formati
+  `
+  CREATE TABLE faqs (
+    id SERIAL PRIMARY KEY,
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL DEFAULT '',
+    sort INTEGER,
+    published INTEGER NOT NULL DEFAULT 1
+  );
+  ALTER TABLE applications ADD COLUMN study_format TEXT NOT NULL DEFAULT '';
+  `,
 ];
 
 /** `?` belgilarini Postgres’ning $1, $2 ... ko‘rinishiga o‘tkazadi. */

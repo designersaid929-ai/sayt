@@ -18,7 +18,7 @@
     ]],
     ['Sayt', [
       ['#/r/courses', 'Kurslar', 'courses'], ['#/r/teachers', 'Ustozlar', 'teachers'], ['#/r/results', 'Natijalar', 'results'],
-      ['#/r/testimonials', 'O‘quvchilar fikrlari', 'testimonials'], ['#/r/branches', 'Filiallar', 'branches'], ['#/settings', 'Sayt matnlari', '@admin'],
+      ['#/r/testimonials', 'O‘quvchilar fikrlari', 'testimonials'], ['#/r/branches', 'Filiallar', 'branches'], ['#/r/faqs', 'Savol-javoblar', 'faqs'], ['#/settings', 'Sayt matnlari', '@admin'],
     ]],
     ['Tizim', [['#/users', 'Foydalanuvchilar', '@admin'], ['#/password', 'Parolni o‘zgartirish']]],
   ];

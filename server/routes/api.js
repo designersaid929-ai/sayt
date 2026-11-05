@@ -4,7 +4,7 @@ import {
   authenticate, startSession, endSession, requireRole, rateLimit, passwordProblem, hashPassword, verifyPassword, revokeSessions,
 } from '../auth.js';
 import { validateValue } from '../validate.js';
-import { TIME_OPTIONS } from '../resources.js';
+import { TIME_OPTIONS, FORMAT_OPTIONS } from '../resources.js';
 import { getSettings } from '../settings.js';
 import { logoSources } from '../views.js';
 
@@ -16,6 +16,7 @@ const APPLICATION_FIELDS = [
   { key: 'full_name', label: 'Ism va familiya', type: 'text', required: true, min: 3, max: 120 },
   { key: 'phone', label: 'Telefon raqami', type: 'phone', required: true },
   { key: 'preferred_time', label: 'Qulay vaqt', type: 'select', options: TIME_OPTIONS, required: true },
+  { key: 'study_format', label: 'O‘qish formati', type: 'select', options: FORMAT_OPTIONS },
   { key: 'comment', label: 'Qo‘shimcha izoh', type: 'textarea', max: 1000 },
 ];
 
@@ -55,9 +56,9 @@ router.post(
     if (Object.keys(errors).length) return res.status(422).json({ error: 'Ma’lumotlarni tekshiring', fields: errors });
 
     await run(
-      `INSERT INTO applications (full_name, phone, course_id, course_title, preferred_time, comment)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      values.full_name, values.phone, courseId, courseTitle, values.preferred_time, values.comment,
+      `INSERT INTO applications (full_name, phone, course_id, course_title, preferred_time, study_format, comment)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      values.full_name, values.phone, courseId, courseTitle, values.preferred_time, values.study_format, values.comment,
     );
     res.status(201).json({ ok: true, message: 'Arizangiz qabul qilindi! Mutaxassislarimiz tez orada siz bilan bog‘lanishadi.' });
   },

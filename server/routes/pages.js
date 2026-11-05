@@ -19,6 +19,7 @@ const published = {
   results: () => all('SELECT * FROM results WHERE published = 1 ORDER BY sort IS NULL, sort, achieved_at DESC, id DESC'),
   testimonials: () => all('SELECT * FROM testimonials WHERE published = 1 ORDER BY sort IS NULL, sort, id DESC'),
   branches: () => all('SELECT * FROM branches ORDER BY sort IS NULL, sort, id'),
+  faqs: () => all('SELECT * FROM faqs WHERE published = 1 ORDER BY sort IS NULL, sort, id'),
 };
 
 function organizationLd(s, branches) {
@@ -48,7 +49,7 @@ function send(res, opts) {
 router.get('/', async (req, res) => {
   const c = await common();
   const data = { ...c, ...Object.fromEntries(await Promise.all(Object.entries(published).map(async ([k, fn]) => [k, await fn()]))) };
-  send(res, { ...c, path: '/', body: views.homePage(data), jsonLd: organizationLd(c.s, data.branches), hero3d: true });
+  send(res, { ...c, path: '/', body: views.homePage(data), jsonLd: [organizationLd(c.s, data.branches), views.faqLd(data.faqs)].filter(Boolean), hero3d: true });
 });
 
 router.get('/kurslar', async (req, res) => {
@@ -82,7 +83,8 @@ router.get('/natijalar', async (req, res) => {
 
 router.get('/biz-haqimizda', async (req, res) => {
   const c = await common();
-  send(res, { ...c, path: '/biz-haqimizda', title: 'Biz haqimizda', body: views.aboutPage({ ...c, testimonials: await published.testimonials() }) });
+  const [testimonials, faqs] = await Promise.all([published.testimonials(), published.faqs()]);
+  send(res, { ...c, path: '/biz-haqimizda', title: 'Biz haqimizda', body: views.aboutPage({ ...c, testimonials, faqs }), jsonLd: views.faqLd(faqs) });
 });
 
 router.get('/aloqa', async (req, res) => {

@@ -7,11 +7,20 @@ export const APP_STATUS = [
   { value: 'rejected', label: 'Rad etildi' },
 ];
 
+// Markazdagi dars vaqtlari (bilimziyo.uz’dagi ro‘yxatdan)
 export const TIME_OPTIONS = [
-  { value: 'morning', label: 'Ertalab (08:00–12:00)' },
-  { value: 'afternoon', label: 'Tushdan keyin (12:00–17:00)' },
-  { value: 'evening', label: 'Kechqurun (17:00–21:00)' },
+  { value: '0900', label: '09:00–10:30' },
+  { value: '1030', label: '10:30–12:00' },
+  { value: '1200', label: '12:00–14:00' },
+  { value: '1530', label: '15:30–17:00' },
+  { value: '1700', label: '17:00–18:30' },
   { value: 'any', label: 'Farqi yo‘q' },
+];
+
+export const FORMAT_OPTIONS = [
+  { value: 'group', label: 'Guruh bilan' },
+  { value: 'mini', label: 'Mini guruh' },
+  { value: 'individual', label: 'Alohida (1-1)' },
 ];
 
 export const ICONS = [
@@ -56,6 +65,7 @@ export const RESOURCES = {
       { key: 'phone', label: 'Telefon', type: 'phone', readonly: true },
       { key: 'course_title', label: 'Kurs', type: 'text', readonly: true },
       { key: 'preferred_time', label: 'Qulay vaqt', type: 'select', options: TIME_OPTIONS, readonly: true },
+      { key: 'study_format', label: 'O‘qish formati', type: 'select', options: FORMAT_OPTIONS, readonly: true },
       { key: 'comment', label: 'Izoh', type: 'textarea', readonly: true },
       { key: 'created_at', label: 'Yuborilgan', type: 'datetime', readonly: true },
       { key: 'status', label: 'Holati', type: 'select', options: APP_STATUS, required: true, filter: true },
@@ -208,6 +218,16 @@ export const RESOURCES = {
       SORT,
     ],
     list: ['name', 'address', 'phone'],
+  },
+  faqs: {
+    table: 'faqs', title: 'Ko‘p so‘raladigan savollar', singular: 'savol', roles: ADMIN, order: 'sort IS NULL, sort, id',
+    fields: [
+      { key: 'question', label: 'Savol', type: 'text', required: true, max: 250 },
+      { key: 'answer', label: 'Javob', type: 'textarea', required: true, max: 2000 },
+      SORT,
+      PUBLISHED,
+    ],
+    list: ['question', 'published'],
   },
 };
 

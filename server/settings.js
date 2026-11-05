@@ -15,7 +15,17 @@ export const SETTINGS_FIELDS = [
     key: 'about_text', label: '“Biz haqimizda” matni', type: 'textarea', max: 3000,
     default: 'Markazimiz o‘quvchilarga sifatli va zamonaviy ta’lim berishni o‘z oldiga maqsad qilib qo‘ygan. Biz har bir o‘quvchining salohiyatini ochish, unga aniq maqsad belgilash va shu maqsadga erishishida yordam berish uchun ishlaymiz.\n\nDarslarimizda nazariy bilim amaliyot bilan uyg‘unlashadi: o‘quvchi nimani, nima uchun va qanday o‘rganayotganini aniq tushunadi.',
   },
+  {
+    key: 'stats', label: 'Raqamlar bloki', type: 'textarea', max: 600, default: '',
+    hint: 'Har qatorda: raqam | izoh. Masalan: 15 yil | tajriba. Bo‘sh qoldirilsa, blok ko‘rsatilmaydi.',
+  },
+  {
+    key: 'why_items', label: '“Nega bizni tanlashadi?” bandlari', type: 'textarea', max: 2000, default: '',
+    hint: 'Har qatorda: sarlavha | izoh. Bo‘sh qoldirilsa, standart bandlar ko‘rsatiladi.',
+  },
+  { key: 'school_url', label: '“Xususiy maktab” havolasi', type: 'url', default: '', hint: 'To‘ldirilsa, bosh ekranda tugma chiqadi' },
   { key: 'phone', label: 'Telefon raqami', type: 'phone', default: '' },
+  { key: 'phone2', label: 'Qo‘shimcha telefon', type: 'phone', default: '' },
   { key: 'email', label: 'Elektron pochta', type: 'email', default: '' },
   { key: 'address', label: 'Asosiy manzil', type: 'text', max: 200, default: '' },
   { key: 'work_hours', label: 'Ish vaqti', type: 'text', max: 100, default: '' },

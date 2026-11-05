@@ -1,5 +1,5 @@
 import { esc, formatMoney, formatDate, phoneHref, youtubeId } from './util.js';
-import { TIME_OPTIONS } from './resources.js';
+import { TIME_OPTIONS, FORMAT_OPTIONS } from './resources.js';
 import { ASSET_VERSION, SITE_URL } from './config.js';
 
 const v = (url) => `${url}?v=${ASSET_VERSION}`;
@@ -101,6 +101,7 @@ function footer(s) {
   const year = new Date().getFullYear();
   const contacts = [
     s.phone && `<li>${icon('phone')}<a href="${phoneHref(s.phone)}">${esc(s.phone)}</a></li>`,
+    s.phone2 && `<li>${icon('phone')}<a href="${phoneHref(s.phone2)}">${esc(s.phone2)}</a></li>`,
     s.email && `<li>${icon('mail')}<a href="mailto:${esc(s.email)}">${esc(s.email)}</a></li>`,
     s.address && `<li>${icon('pin')}<span>${esc(s.address)}</span></li>`,
   ].filter(Boolean).join('');
@@ -145,6 +146,9 @@ export function enrollForm(courses, { id = 'enroll', inline = false } = {}) {
       </select>
       <p class="field-error" data-error="preferred_time"></p></div>
   </div>
+  <fieldset class="field format-field"><legend>O‘qish formati <span class="muted">(ixtiyoriy)</span></legend>
+    <div class="format-options">${FORMAT_OPTIONS.map((f) => `<label class="format-chip"><input type="radio" name="study_format" value="${f.value}"><span>${esc(f.label)}</span></label>`).join('')}</div>
+  </fieldset>
   <div class="field"><label for="${id}-comment">Qo‘shimcha izoh <span class="muted">(ixtiyoriy)</span></label>
     <textarea id="${id}-comment" name="comment" rows="3" maxlength="1000" placeholder="Darajangiz, maqsadingiz yoki savollaringiz"></textarea>
     <p class="field-error" data-error="comment"></p></div>
@@ -263,17 +267,52 @@ const WHY = [
   ['Qulay dars jadvali', 'Dars vaqtini o‘qish yoki ish jadvalingizga moslab tanlashingiz mumkin.', 'book'],
 ];
 
-function whySection() {
+const WHY_ICONS = ['cap', 'atom', 'spark', 'award', 'book', 'globe', 'pen'];
+
+/** "chap | o‘ng" qatorlaridan iborat matnni juftliklarga ajratadi. */
+function pairs(text) {
+  return String(text || '').split('\n').map((line) => line.split('|').map((x) => x.trim()))
+    .filter(([a, b]) => a && b !== undefined);
+}
+
+function whySection(s) {
+  const custom = pairs(s.why_items).map(([t, d], i) => [esc(t), esc(d), WHY_ICONS[i % WHY_ICONS.length]]);
+  const items = custom.length ? custom : WHY;
   return `<section class="section" id="afzalliklar">
   <div class="container">
     ${sectionHead({ eyebrow: 'Afzalliklarimiz', title: 'Nega bizni tanlashadi?', lead: 'Sifatli ta’lim — aniq tizim, kuchli jamoa va har bir o‘quvchiga e’tibor demakdir.' })}
-    <div class="why-grid">
-      ${WHY.map(([t, d, ic], i) => `<article class="why-card" data-reveal style="--d:${i * 70}ms">
+    <div class="why-grid${items.length === 5 ? '' : ' auto'}">
+      ${items.map(([t, d, ic], i) => `<article class="why-card" data-reveal style="--d:${i * 70}ms">
         <div class="why-icon">${icon(ic, 'icon3d-svg')}</div>
         <h3 class="card-title">${t}</h3><p class="card-text">${d}</p></article>`).join('')}
     </div>
   </div>
 </section>`;
+}
+
+function statsStrip(s) {
+  const items = pairs(s.stats);
+  if (!items.length) return '';
+  return `<section class="stats-strip" aria-label="Raqamlarda"><div class="container"><ul class="stats-grid">
+    ${items.map(([value, label], i) => `<li data-reveal style="--d:${i * 60}ms"><strong>${esc(value)}</strong><span>${esc(label)}</span></li>`).join('')}
+  </ul></div></section>`;
+}
+
+function faqSection(faqs, { head = true } = {}) {
+  if (!faqs.length) return '';
+  return `<section class="section" id="savollar"><div class="container faq-wrap">
+    ${head ? sectionHead({ eyebrow: 'Savol-javob', title: 'Ko‘p so‘raladigan savollar' }) : ''}
+    <div class="faq-list">
+      ${faqs.map((f) => `<details class="faq-item" data-reveal><summary>${esc(f.question)}</summary><div class="faq-answer">${esc(f.answer).replace(/\n/g, '<br>')}</div></details>`).join('')}
+    </div>
+  </div></section>`;
+}
+
+export function faqLd(faqs) {
+  return faqs.length ? {
+    '@context': 'https://schema.org', '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.question, acceptedAnswer: { '@type': 'Answer', text: f.answer } })),
+  } : null;
 }
 
 function resultCard(r) {
@@ -374,7 +413,7 @@ function heroTitle(title) {
 }
 
 export function homePage(d) {
-  const { s, courses, results, teachers, testimonials, branches } = d;
+  const { s, courses, results, teachers, testimonials, branches, faqs } = d;
   const { info } = contactBlock(s, branches);
   return `
 <section class="hero">
@@ -386,6 +425,7 @@ export function homePage(d) {
       <div class="hero-cta" data-reveal style="--d:240ms">
         <a class="btn btn-gold btn-lg" href="/kurslar">Kurslarni ko‘rish ${icon('arrow')}</a>
         <button class="btn btn-ghost btn-lg" type="button" data-enroll="consult">Bepul maslahat olish</button>
+        ${s.school_url ? `<a class="btn btn-ghost btn-lg" href="${esc(s.school_url)}" target="_blank" rel="noopener">Xususiy maktab ${icon('arrow')}</a>` : ''}
       </div>
       <ul class="hero-points" data-reveal style="--d:320ms">
         <li>${icon('check')}Individual yondashuv</li><li>${icon('check')}Qulay dars jadvali</li><li>${icon('check')}Bepul maslahat</li>
@@ -402,6 +442,7 @@ export function homePage(d) {
     </div>
   </div>
 </section>
+${statsStrip(s)}
 
 <section class="section" id="kurslar">
   <div class="container">
@@ -410,7 +451,7 @@ export function homePage(d) {
   </div>
 </section>
 
-${whySection()}
+${whySection(s)}
 
 <section class="section" id="natijalar">
   <div class="container">
@@ -427,6 +468,7 @@ ${whySection()}
 </section>
 
 ${testimonialsSection(testimonials.slice(0, 6))}
+${faqSection(faqs)}
 ${ctaBand()}
 
 <section class="section" id="aloqa">
@@ -493,7 +535,7 @@ export function resultsPage({ results }) {
 <section class="section section-tight"><div class="container">${resultsGrid(results)}</div></section>${ctaBand()}`;
 }
 
-export function aboutPage({ s, testimonials }) {
+export function aboutPage({ s, testimonials, faqs = [] }) {
   const paragraphs = String(s.about_text).split(/\n{2,}/).map((p) => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`).join('');
   return `${pageHero('Biz haqimizda', esc(s.about_title), '')}
 <section class="section section-tight"><div class="container about-grid">
@@ -505,8 +547,10 @@ export function aboutPage({ s, testimonials }) {
     <button class="btn btn-gold" type="button" data-enroll="consult">Bepul maslahat olish</button>
   </div>
 </div></section>
-${whySection()}
-${testimonialsSection(testimonials)}`;
+${statsStrip(s)}
+${whySection(s)}
+${testimonialsSection(testimonials)}
+${faqSection(faqs)}`;
 }
 
 export function contactPage({ s, branches, courses }) {
