@@ -623,12 +623,12 @@ body.modal-open { overflow: hidden; }
    ========================================================================== */
 .course-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
 .course-card { display: flex; flex-direction: column; gap: 22px; padding: 30px 30px 28px; }
-.course-card.tone-blue   { --tone-a: #3D8BF2; --tone-b: #57B9E8; }
-.course-card.tone-orange { --tone-a: #E87A2C; --tone-b: #EFB740; }
-.course-card.tone-green  { --tone-a: #3C9A2E; --tone-b: #7CC343; }
-.course-card.tone-dark   { --tone-a: #23262E; --tone-b: #4A505E; }
-.course-card.tone-purple { --tone-a: #6E4BE3; --tone-b: #A77BF3; }
-.course-card.tone-cyan   { --tone-a: #0E9BBF; --tone-b: #24D8FF; }
+.tone-blue   { --tone-a: #3D8BF2; --tone-b: #57B9E8; }
+.tone-orange { --tone-a: #E87A2C; --tone-b: #EFB740; }
+.tone-green  { --tone-a: #3C9A2E; --tone-b: #7CC343; }
+.tone-dark   { --tone-a: #23262E; --tone-b: #4A505E; }
+.tone-purple { --tone-a: #6E4BE3; --tone-b: #A77BF3; }
+.tone-cyan   { --tone-a: #0E9BBF; --tone-b: #24D8FF; }
 .course-head { display: flex; align-items: center; gap: 18px; }
 .course-icon {
   width: 64px; height: 64px; flex: none; border-radius: 50%; display: grid; place-items: center;
@@ -663,4 +663,20 @@ body.modal-open { overflow: hidden; }
   .course-icon { width: 54px; height: 54px; }
   .course-icon-svg { width: 28px; height: 28px; }
   .course-features li { font-size: 15px; }
+}
+
+/* Afzalliklar — kurs kartalari bilan bir uslubda */
+.why-card { display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+.why-card::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px;
+  background: linear-gradient(90deg, var(--tone-a), var(--tone-b)); opacity: .9;
+}
+.why-card .course-head { gap: 16px; }
+.why-card .course-icon { width: 58px; height: 58px; }
+.why-card .course-icon-svg { width: 30px; height: 30px; }
+.why-title { font-size: 1.2rem; letter-spacing: -.01em; }
+.why-card .card-text { margin-top: 0; font-size: 15.5px; }
+@media (hover: hover) {
+  .why-card:hover .course-icon { transform: scale(1.06) rotate(-4deg); }
+  .why-card:hover { box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .8), 0 0 50px -24px var(--tone-a); }
 }

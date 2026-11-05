@@ -46,6 +46,9 @@ const SPRITE = `<svg class="sprite" aria-hidden="true" focusable="false" xmlns="
 <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></symbol>
 <symbol id="i-dcheck" viewBox="0 0 28 20"><g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m2 10.5 5 5L17 4"/><path d="m10 10.5 5 5L25 4" opacity=".45"/></g></symbol>
 <symbol id="i-sparkle" viewBox="0 0 24 24"><path fill="currentColor" d="M10 4c.7 4.4 2.1 5.8 6.5 6.5C12.1 11.2 10.7 12.6 10 17c-.7-4.4-2.1-5.8-6.5-6.5C7.9 9.8 9.3 8.4 10 4zm8-2c.3 1.7.8 2.2 2.5 2.5-1.7.3-2.2.8-2.5 2.5-.3-1.7-.8-2.2-2.5-2.5 1.7-.3 2.2-.8 2.5-2.5z"/></symbol>
+<symbol id="i-laptop" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M2 19h20"/></g></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.8c1.7.8 2.7 2.5 3 5.2"/></g></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></g><path fill="currentColor" d="m12 12.6.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z"/></symbol>
 <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.5v13l11-6.5z"/></symbol>
 </svg>`;
 
@@ -289,16 +292,24 @@ function pairs(text) {
     .filter(([a, b]) => a && b !== undefined);
 }
 
+// Band sarlavhasidagi kalit so‘z bo‘yicha mos belgi
+const WHY_KEYWORDS = [
+  [/coworking|mustaqil/i, 'laptop'], [/ustoz|o‘qituvchi|o'qituvchi/i, 'users'], [/yakshanba|tadbir/i, 'calendar'],
+  [/joylash|lokatsiya|manzil|filial/i, 'pin'], [/dastur|kitob|oxford/i, 'book'], [/natija|sertifikat/i, 'award'],
+  [/jadval|vaqt/i, 'clock'], [/usul|zamonaviy/i, 'atom'], [/yondashuv|individual/i, 'spark'],
+];
+const whyIcon = (title, i) => WHY_KEYWORDS.find(([re]) => re.test(title))?.[1] ?? WHY_ICONS[i % WHY_ICONS.length];
+
 function whySection(s) {
-  const custom = pairs(s.why_items).map(([t, d], i) => [esc(t), esc(d), WHY_ICONS[i % WHY_ICONS.length]]);
+  const custom = pairs(s.why_items).map(([t, d], i) => [esc(t), esc(d), whyIcon(t, i)]);
   const items = custom.length ? custom : WHY;
   return `<section class="section" id="afzalliklar">
   <div class="container">
     ${sectionHead({ eyebrow: 'Afzalliklarimiz', title: 'Nega bizni tanlashadi?', lead: 'Sifatli ta’lim — aniq tizim, kuchli jamoa va har bir o‘quvchiga e’tibor demakdir.' })}
     <div class="why-grid${items.length === 5 ? '' : ' auto'}">
-      ${items.map(([t, d, ic], i) => `<article class="why-card" data-reveal style="--d:${i * 70}ms">
-        <div class="why-icon">${icon(ic, 'icon3d-svg')}</div>
-        <h3 class="card-title">${t}</h3><p class="card-text">${d}</p></article>`).join('')}
+      ${items.map(([t, d, ic], i) => `<article class="why-card tone-${COURSE_PALETTE[i % COURSE_PALETTE.length]}" data-reveal style="--d:${i * 70}ms">
+        <header class="course-head"><span class="course-icon">${icon(ic, 'course-icon-svg')}</span><h3 class="why-title">${t}</h3></header>
+        <p class="card-text">${d}</p></article>`).join('')}
     </div>
   </div>
 </section>`;
