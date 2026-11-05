@@ -28,6 +28,10 @@ export const SETTINGS_FIELDS = [
   { key: 'phone2', label: 'Qo‘shimcha telefon', type: 'phone', default: '' },
   { key: 'email', label: 'Elektron pochta', type: 'email', default: '' },
   { key: 'address', label: 'Asosiy manzil', type: 'text', max: 200, default: '' },
+  {
+    key: 'map_url', label: 'Asosiy xarita (embed havola)', type: 'mapurl', default: '',
+    hint: 'Google Maps → Ulashish → Xaritani joylashtirish → iframe kodini to‘liq qo‘ying. Bosh sahifa va “Aloqa”da chiqadi.',
+  },
   { key: 'work_hours', label: 'Ish vaqti', type: 'text', max: 100, default: '' },
   { key: 'telegram', label: 'Telegram havolasi', type: 'url', default: '' },
   { key: 'instagram', label: 'Instagram havolasi', type: 'url', default: '' },

@@ -420,6 +420,11 @@ function ctaBand() {
   </div></div></section>`;
 }
 
+function mainMap(s) {
+  if (!s.map_url) return '';
+  return `<div class="main-map"><iframe src="${esc(s.map_url)}" title="${esc(s.site_name)} xaritada" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>`;
+}
+
 function contactBlock(s, branches) {
   const info = [
     s.phone && `<li>${toneIcon('phone', 'blue')}<div><span>Telefon</span><a href="${phoneHref(s.phone)}">${esc(s.phone)}</a></div></li>`,
@@ -509,6 +514,7 @@ ${ctaBand()}
       ${sectionHead({ eyebrow: 'Aloqa', title: 'Biz bilan bog‘laning', lead: 'Savollaringiz bo‘lsa, qo‘ng‘iroq qiling yoki ariza qoldiring.' })}
       ${info ? `<ul class="contact-list">${info}</ul>` : ''}
       ${socials(s, 'socials socials-lg')}
+      ${mainMap(s)}
       <a class="link-more" href="/aloqa">Filiallar va xarita ${icon('arrow')}</a>
     </div>
     <div class="form-card" data-reveal><h3 class="card-title">Ariza qoldiring</h3>${enrollForm(courses, { id: 'home', inline: true })}</div>
@@ -592,6 +598,7 @@ export function contactPage({ s, branches, courses }) {
   <div data-reveal>
     ${info ? `<ul class="contact-list">${info}</ul>` : '<p class="muted">Aloqa ma’lumotlari tez orada joylanadi.</p>'}
     ${socials(s, 'socials socials-lg')}
+    ${mainMap(s)}
   </div>
   <div class="form-card" data-reveal><h2 class="card-title">Ariza qoldiring</h2>${enrollForm(courses, { id: 'contact', inline: true })}</div>
 </div></section>

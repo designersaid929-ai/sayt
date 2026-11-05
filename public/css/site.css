@@ -813,3 +813,10 @@ body.modal-open { overflow: hidden; }
 
 /* Sariq doiradagi belgilar doim qora: oltin gradient bilan chizilgan belgilar (masalan, yulduzcha) ham */
 .tone-icon .ico { filter: brightness(0) opacity(.88); }
+
+/* Asosiy xarita (aloqa bo‘limi) */
+.main-map {
+  margin: 4px 0 24px; border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--line); box-shadow: var(--shadow); aspect-ratio: 4 / 3; background: var(--surface-solid);
+}
+.main-map iframe { width: 100%; height: 100%; border: 0; display: block; }
