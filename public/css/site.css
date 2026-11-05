@@ -400,7 +400,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 48px; padding-top: 64px; padding-bottom: 48px; }
 .footer-brand p { color: var(--muted); font-size: 15px; margin-top: 18px; max-width: 380px; }
 .footer-title { font: 700 14px/1 var(--font-head); letter-spacing: .12em; text-transform: uppercase; color: var(--cyan); margin-bottom: 18px; }
-.footer-links { display: grid; gap: 10px; }
+.footer-links { display: grid; grid-template-columns: repeat(2, max-content); gap: 10px 32px; }
 .footer-links a, .footer-contacts a { color: var(--muted); transition: color .2s; }
 .footer-links a:hover, .footer-contacts a:hover { color: var(--accent); }
 .footer-contacts { display: grid; gap: 12px; color: var(--muted); }
