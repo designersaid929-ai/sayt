@@ -44,6 +44,8 @@ const SPRITE = `<svg class="sprite" aria-hidden="true" focusable="false" xmlns="
 <symbol id="i-youtube" viewBox="0 0 24 24"><path fill="currentColor" d="M22 8.2a3 3 0 0 0-2.1-2.1C18 5.6 12 5.6 12 5.6s-6 0-7.9.5A3 3 0 0 0 2 8.2 31 31 0 0 0 1.6 12 31 31 0 0 0 2 15.8a3 3 0 0 0 2.1 2.1c1.9.5 7.9.5 7.9.5s6 0 7.9-.5a3 3 0 0 0 2.1-2.1c.3-1.3.4-2.5.4-3.8s-.1-2.5-.4-3.8zM10 15V9l5.2 3z"/></symbol>
 <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></g></symbol>
 <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></symbol>
+<symbol id="i-dcheck" viewBox="0 0 28 20"><g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m2 10.5 5 5L17 4"/><path d="m10 10.5 5 5L25 4" opacity=".45"/></g></symbol>
+<symbol id="i-sparkle" viewBox="0 0 24 24"><path fill="currentColor" d="M10 4c.7 4.4 2.1 5.8 6.5 6.5C12.1 11.2 10.7 12.6 10 17c-.7-4.4-2.1-5.8-6.5-6.5C7.9 9.8 9.3 8.4 10 4zm8-2c.3 1.7.8 2.2 2.5 2.5-1.7.3-2.2.8-2.5 2.5-.3-1.7-.8-2.2-2.5-2.5 1.7-.3 2.2-.8 2.5-2.5z"/></symbol>
 <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.5v13l11-6.5z"/></symbol>
 </svg>`;
 
@@ -238,25 +240,37 @@ function emptyState(text) {
   return `<div class="empty-state" data-reveal><div class="empty-icon">${icon('spark', 'ico-lg')}</div><p>${text}</p></div>`;
 }
 
-function courseCard(c) {
-  const price = c.price != null ? `${formatMoney(c.price)} <small>/ oy</small>` : 'Narx bo‘yicha maslahat oling';
-  return `<article class="course-card" data-reveal>
-  <div class="icon3d">${icon(c.icon || 'book', 'icon3d-svg')}</div>
-  <h3 class="card-title">${esc(c.title)}</h3>
-  <p class="card-text">${esc(c.short_desc)}</p>
-  <ul class="course-meta">
-    ${c.duration ? `<li>${icon('clock')}<span>${esc(c.duration)}</span></li>` : ''}
-    <li>${icon('wallet')}<span>${price}</span></li>
+const COURSE_PALETTE = ['blue', 'orange', 'green', 'dark', 'purple', 'cyan'];
+
+/** Kartadagi ro‘yxat: admin kiritgan bandlar yoki qisqa tavsif + davomiylik + narx. */
+function courseFeatures(c) {
+  const lines = String(c.features || '').split('\n').map((x) => x.trim()).filter(Boolean);
+  if (lines.length) return lines.map(esc);
+  return [
+    c.short_desc && esc(c.short_desc),
+    c.duration && `Davomiyligi: ${esc(c.duration)}`,
+    c.price != null ? `Narxi: ${formatMoney(c.price)} / oy` : 'Narx bo‘yicha bepul maslahat oling',
+  ].filter(Boolean);
+}
+
+function courseCard(c, i = 0) {
+  const color = c.color && c.color !== 'auto' ? c.color : COURSE_PALETTE[i % COURSE_PALETTE.length];
+  return `<article class="course-card tone-${color}" data-reveal>
+  <header class="course-head">
+    <span class="course-icon">${icon(c.icon || 'book', 'course-icon-svg')}</span>
+    <h3 class="course-title"><a href="/kurslar/${esc(c.slug)}">${esc(c.title)}</a></h3>
+  </header>
+  <ul class="course-features">
+    ${courseFeatures(c).map((f) => `<li>${icon('dcheck', 'dcheck')}<span>${f}</span></li>`).join('')}
   </ul>
-  <div class="card-actions">
-    <a class="btn btn-ghost btn-sm" href="/kurslar/${esc(c.slug)}">Batafsil</a>
-    <button class="btn btn-gold btn-sm" type="button" data-enroll="${c.id}">Yozilish</button>
-  </div>
+  <button class="btn course-cta" type="button" data-enroll="${c.id}">Birinchi darsga yoziling ${icon('sparkle', 'ico')}</button>
 </article>`;
 }
 
 function coursesGrid(courses) {
-  return courses.length ? `<div class="grid grid-3">${courses.map(courseCard).join('')}</div>` : emptyState('Kurslar ro‘yxati tez orada e’lon qilinadi.');
+  return courses.length
+    ? `<div class="course-grid">${courses.map((c, i) => courseCard(c, i)).join('')}</div>`
+    : emptyState('Kurslar ro‘yxati tez orada e’lon qilinadi.');
 }
 
 const WHY = [
@@ -447,7 +461,7 @@ ${statsStrip(s)}
 <section class="section" id="kurslar">
   <div class="container">
     ${sectionHead({ eyebrow: 'Kurslar', title: 'Kurslarimiz', lead: 'O‘zingizga mos yo‘nalishni tanlang va bugunoq o‘qishni boshlang.', link: ['/kurslar', 'Barcha kurslar'] })}
-    ${coursesGrid(courses)}
+    ${coursesGrid(courses.slice(0, 6))}
   </div>
 </section>
 
@@ -522,7 +536,7 @@ export function courseDetailPage({ course: c, courses }) {
     <button class="btn btn-ghost btn-block" type="button" data-enroll="consult">Bepul maslahat olish</button>
   </aside>
 </div></section>
-${others.length ? `<section class="section"><div class="container">${sectionHead({ eyebrow: 'Yana', title: 'Boshqa kurslar', link: ['/kurslar', 'Barcha kurslar'] })}<div class="grid grid-3">${others.map(courseCard).join('')}</div></div></section>` : ''}`;
+${others.length ? `<section class="section"><div class="container">${sectionHead({ eyebrow: 'Yana', title: 'Boshqa kurslar', link: ['/kurslar', 'Barcha kurslar'] })}${coursesGrid(others)}</div></section>` : ''}`;
 }
 
 export function teachersPage({ teachers }) {

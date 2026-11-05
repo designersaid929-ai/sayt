@@ -35,6 +35,16 @@ export const ICONS = [
   { value: 'spark', label: 'Yulduzcha (boshqa)' },
 ];
 
+export const COURSE_COLORS = [
+  { value: 'auto', label: 'Avtomatik (tartib bo‘yicha)' },
+  { value: 'blue', label: 'Ko‘k' },
+  { value: 'orange', label: 'To‘q sariq' },
+  { value: 'green', label: 'Yashil' },
+  { value: 'dark', label: 'Qora' },
+  { value: 'purple', label: 'Binafsha' },
+  { value: 'cyan', label: 'Moviy' },
+];
+
 const STUDENT_STATUS = [
   { value: 'active', label: 'O‘qiyapti' },
   { value: 'paused', label: 'To‘xtatgan' },
@@ -160,7 +170,12 @@ export const RESOURCES = {
       { key: 'description', label: 'To‘liq tavsif (kurs sahifasida)', type: 'textarea', max: 5000 },
       { key: 'duration', label: 'Davomiyligi', type: 'text', max: 60, placeholder: 'Masalan: 6 oy' },
       { key: 'price', label: 'Narxi (so‘m, oyiga)', type: 'money', hint: 'Bo‘sh qoldirilsa, “narx bo‘yicha maslahat” yozuvi chiqadi' },
-      { key: 'icon', label: '3D belgi', type: 'select', options: ICONS, required: true, default: 'book' },
+      {
+        key: 'features', label: 'Kurs imkoniyatlari (kartadagi ro‘yxat)', type: 'textarea', max: 3000,
+        hint: 'Har bir bandni yangi qatordan yozing. Bo‘sh qoldirilsa, qisqa tavsif, davomiylik va narx ko‘rsatiladi.',
+      },
+      { key: 'icon', label: 'Belgi', type: 'select', options: ICONS, required: true, default: 'book' },
+      { key: 'color', label: 'Karta rangi', type: 'select', options: COURSE_COLORS, required: true, default: 'auto' },
       SORT,
       PUBLISHED,
     ],

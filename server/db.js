@@ -201,6 +201,11 @@ const MIGRATIONS = [
   );
   ALTER TABLE applications ADD COLUMN study_format TEXT NOT NULL DEFAULT '';
   `,
+  // 3: kurs kartasidagi imkoniyatlar ro‘yxati va rang
+  `
+  ALTER TABLE courses ADD COLUMN features TEXT NOT NULL DEFAULT '';
+  ALTER TABLE courses ADD COLUMN color TEXT NOT NULL DEFAULT 'auto';
+  `,
 ];
 
 /** `?` belgilarini Postgres’ning $1, $2 ... ko‘rinishiga o‘tkazadi. */

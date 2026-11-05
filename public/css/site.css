@@ -617,3 +617,50 @@ body.modal-open { overflow: hidden; }
 }
 .format-chip input:checked + span { background: var(--gold); border-color: var(--gold); color: var(--navy); font-weight: 600; }
 .format-chip input:focus-visible + span { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+/* ==========================================================================
+   Kurs kartalari (rangli belgi, ✓✓ ro‘yxat, gradient tugma)
+   ========================================================================== */
+.course-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.course-card { display: flex; flex-direction: column; gap: 22px; padding: 30px 30px 28px; }
+.course-card.tone-blue   { --tone-a: #3D8BF2; --tone-b: #57B9E8; }
+.course-card.tone-orange { --tone-a: #E87A2C; --tone-b: #EFB740; }
+.course-card.tone-green  { --tone-a: #3C9A2E; --tone-b: #7CC343; }
+.course-card.tone-dark   { --tone-a: #23262E; --tone-b: #4A505E; }
+.course-card.tone-purple { --tone-a: #6E4BE3; --tone-b: #A77BF3; }
+.course-card.tone-cyan   { --tone-a: #0E9BBF; --tone-b: #24D8FF; }
+.course-head { display: flex; align-items: center; gap: 18px; }
+.course-icon {
+  width: 64px; height: 64px; flex: none; border-radius: 50%; display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--tone-a), var(--tone-b));
+  box-shadow: 0 12px 24px -12px var(--tone-a), inset 0 1px 0 rgba(255, 255, 255, .3);
+}
+.course-icon-svg { width: 34px; height: 34px; filter: brightness(0) invert(1); }
+.course-title { font-size: clamp(1.35rem, 2.2vw, 1.75rem); letter-spacing: -.02em; }
+.course-title a:hover { color: var(--accent); }
+.course-features { display: grid; gap: 14px; flex: 1; align-content: start; }
+.course-features li { display: flex; gap: 12px; color: var(--text-2); font-size: 15.5px; line-height: 1.6; }
+.dcheck { width: 26px; height: 19px; flex: none; margin-top: 3px; color: var(--tone-a); }
+.tone-dark .dcheck { color: var(--text); }
+.course-cta {
+  width: 100%; padding: 17px 24px; font-size: 16px; color: #fff; border: 0;
+  background: linear-gradient(90deg, var(--tone-a), var(--tone-b));
+  box-shadow: 0 14px 30px -16px var(--tone-a);
+}
+.course-cta .ico { width: 20px; height: 20px; }
+.course-cta:hover { transform: translateY(-2px); box-shadow: 0 18px 36px -14px var(--tone-a); filter: saturate(1.1); }
+.course-cta:hover .ico { transform: rotate(18deg) scale(1.1); }
+.tone-dark .course-cta { border: 1px solid rgba(255, 255, 255, .14); }
+@media (hover: hover) {
+  .course-card:hover .course-icon { transform: scale(1.06) rotate(-4deg); }
+}
+.course-icon { transition: transform .4s var(--ease); }
+@media (max-width: 860px) {
+  .course-grid { grid-template-columns: 1fr; gap: 20px; }
+}
+@media (max-width: 640px) {
+  .course-card { padding: 24px 20px; gap: 18px; }
+  .course-icon { width: 54px; height: 54px; }
+  .course-icon-svg { width: 28px; height: 28px; }
+  .course-features li { font-size: 15px; }
+}
