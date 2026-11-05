@@ -778,3 +778,35 @@ body.modal-open { overflow: hidden; }
 .faq-item summary::after { background: linear-gradient(135deg, #FFF000, #FFC93A); color: var(--navy); }
 .socials a:hover { background: linear-gradient(135deg, #FFF000, #FFC93A); color: var(--navy); }
 .success-badge { background: linear-gradient(135deg, #FFF000, #FFC93A); color: var(--navy); box-shadow: 0 0 0 10px rgba(255, 240, 0, .12), 0 0 40px rgba(255, 240, 0, .35); }
+
+/* ==========================================================================
+   Yorug‘ (kunduzgi) rejim tuzatishlari — tungi rejimga ta’sir qilmaydi
+   ========================================================================== */
+/* 1. “15 yillik tajriba” — nuqta ham sariq */
+[data-theme="light"] .badge { background: rgba(255, 240, 0, .12); border-color: rgba(185, 138, 0, .3); }
+[data-theme="light"] .badge .dot { background: #FFD84A; box-shadow: 0 0 0 3px rgba(255, 216, 74, .3), 0 0 10px rgba(255, 200, 0, .6); }
+
+/* 2. “bilim” — to‘q matn ustida sariq marker, qatorlar orasi ochiqroq */
+[data-theme="light"] .hero-title { line-height: 1.1; }
+[data-theme="light"] .hl {
+  color: var(--text);
+  background: linear-gradient(transparent 62%, #FFF000 62%, #FFF000 92%, transparent 92%);
+  padding: 0 .04em; border-radius: 2px;
+}
+
+/* 3–4. Kartalar: sariq chiziq burchaklarga mos, yengil soya, sariq hover chegarasi */
+[data-theme="light"] .why-card::before, [data-theme="light"] .stats-grid li::before { display: none; }
+[data-theme="light"] .why-card { box-shadow: inset 0 3px 0 #FFD84A, 0 18px 40px -28px rgba(11, 40, 100, .3); }
+[data-theme="light"] .stats-grid li { box-shadow: inset 0 3px 0 #FFD84A; }
+[data-theme="light"] .course-card::before { background: linear-gradient(140deg, rgba(232, 190, 0, .8), transparent 45%, transparent 60%, rgba(232, 190, 0, .6)); }
+@media (hover: hover) {
+  [data-theme="light"] .course-card:hover,
+  [data-theme="light"] .result-card:hover,
+  [data-theme="light"] .teacher-card:hover {
+    box-shadow: 0 26px 50px -28px rgba(11, 40, 100, .35), 0 0 40px -20px rgba(255, 216, 74, .7);
+  }
+  [data-theme="light"] .why-card:hover {
+    box-shadow: inset 0 3px 0 #FFD84A, 0 26px 50px -28px rgba(11, 40, 100, .35), 0 0 40px -20px rgba(255, 216, 74, .7);
+  }
+}
+[data-theme="light"] .course-icon, [data-theme="light"] .tone-icon { box-shadow: 0 8px 18px -10px rgba(200, 150, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .6); }
