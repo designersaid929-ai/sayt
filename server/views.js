@@ -53,6 +53,8 @@ const SPRITE = `<svg class="sprite" aria-hidden="true" focusable="false" xmlns="
 </svg>`;
 
 const icon = (name, cls = 'ico') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+/** Rangli gradient doira ichidagi oq belgi (kurs kartalaridagi uslub). */
+const toneIcon = (name, tone, size = '') => `<span class="tone-icon tone-${tone}${size ? ` tone-icon-${size}` : ''}" aria-hidden="true">${icon(name)}</span>`;
 
 /* ---------- Umumiy qismlar ---------- */
 
@@ -105,10 +107,10 @@ function socials(s, cls = 'socials') {
 function footer(s) {
   const year = new Date().getFullYear();
   const contacts = [
-    s.phone && `<li>${icon('phone')}<a href="${phoneHref(s.phone)}">${esc(s.phone)}</a></li>`,
-    s.phone2 && `<li>${icon('phone')}<a href="${phoneHref(s.phone2)}">${esc(s.phone2)}</a></li>`,
-    s.email && `<li>${icon('mail')}<a href="mailto:${esc(s.email)}">${esc(s.email)}</a></li>`,
-    s.address && `<li>${icon('pin')}<span>${esc(s.address)}</span></li>`,
+    s.phone && `<li>${toneIcon('phone', 'blue', 'sm')}<a href="${phoneHref(s.phone)}">${esc(s.phone)}</a></li>`,
+    s.phone2 && `<li>${toneIcon('phone', 'blue', 'sm')}<a href="${phoneHref(s.phone2)}">${esc(s.phone2)}</a></li>`,
+    s.email && `<li>${toneIcon('mail', 'orange', 'sm')}<a href="mailto:${esc(s.email)}">${esc(s.email)}</a></li>`,
+    s.address && `<li>${toneIcon('pin', 'green', 'sm')}<span>${esc(s.address)}</span></li>`,
   ].filter(Boolean).join('');
   return `<footer class="site-footer">
   <div class="container footer-grid">
@@ -240,7 +242,7 @@ function sectionHead({ eyebrow, title, lead, link, h = 'h2' }) {
 }
 
 function emptyState(text) {
-  return `<div class="empty-state" data-reveal><div class="empty-icon">${icon('spark', 'ico-lg')}</div><p>${text}</p></div>`;
+  return `<div class="empty-state" data-reveal>${toneIcon('spark', 'blue', 'lg')}<p>${text}</p></div>`;
 }
 
 const COURSE_PALETTE = ['blue', 'orange', 'green', 'dark', 'purple', 'cyan'];
@@ -256,8 +258,14 @@ function courseFeatures(c) {
   ].filter(Boolean);
 }
 
-function courseCard(c, i = 0) {
-  const color = c.color && c.color !== 'auto' ? c.color : COURSE_PALETTE[i % COURSE_PALETTE.length];
+function courseTone(c, courses) {
+  if (c.color && c.color !== 'auto') return c.color;
+  const i = Math.max(0, courses.findIndex((x) => x.id === c.id));
+  return COURSE_PALETTE[i % COURSE_PALETTE.length];
+}
+
+function courseCard(c, all) {
+  const color = courseTone(c, all);
   return `<article class="course-card tone-${color}" data-reveal>
   <header class="course-head">
     <span class="course-icon">${icon(c.icon || 'book', 'course-icon-svg')}</span>
@@ -270,9 +278,10 @@ function courseCard(c, i = 0) {
 </article>`;
 }
 
-function coursesGrid(courses) {
+// all — barcha kurslar ro‘yxati: kurs qaysi sahifada chiqmasin, rangi bir xil bo‘lsin
+function coursesGrid(courses, all = courses) {
   return courses.length
-    ? `<div class="course-grid">${courses.map((c, i) => courseCard(c, i)).join('')}</div>`
+    ? `<div class="course-grid">${courses.map((c) => courseCard(c, all)).join('')}</div>`
     : emptyState('Kurslar ro‘yxati tez orada e’lon qilinadi.');
 }
 
@@ -319,7 +328,7 @@ function statsStrip(s) {
   const items = pairs(s.stats);
   if (!items.length) return '';
   return `<section class="stats-strip" aria-label="Raqamlarda"><div class="container"><ul class="stats-grid">
-    ${items.map(([value, label], i) => `<li data-reveal style="--d:${i * 60}ms"><strong>${esc(value)}</strong><span>${esc(label)}</span></li>`).join('')}
+    ${items.map(([value, label], i) => `<li class="tone-${COURSE_PALETTE[i % COURSE_PALETTE.length]}" data-reveal style="--d:${i * 60}ms"><strong>${esc(value)}</strong><span>${esc(label)}</span></li>`).join('')}
   </ul></div></section>`;
 }
 
@@ -369,8 +378,8 @@ function teacherCard(t) {
   <div class="teacher-body">
     <h3 class="card-title">${esc(t.full_name)}</h3>
     ${t.specialty ? `<p class="teacher-role">${esc(t.specialty)}</p>` : ''}
-    ${t.experience ? `<p class="teacher-exp">${icon('clock')} Tajribasi: ${esc(t.experience)}</p>` : ''}
-    ${achievements.length ? `<ul class="check-list">${achievements.map((a) => `<li>${icon('check')}${esc(a)}</li>`).join('')}</ul>` : ''}
+    ${t.experience ? `<p class="teacher-exp">${toneIcon('clock', 'purple', 'xs')} Tajribasi: ${esc(t.experience)}</p>` : ''}
+    ${achievements.length ? `<ul class="check-list">${achievements.map((a) => `<li>${icon('dcheck', 'dcheck')}<span>${esc(a)}</span></li>`).join('')}</ul>` : ''}
   </div>
 </article>`;
 }
@@ -413,19 +422,20 @@ function ctaBand() {
 
 function contactBlock(s, branches) {
   const info = [
-    s.phone && `<li>${icon('phone')}<div><span>Telefon</span><a href="${phoneHref(s.phone)}">${esc(s.phone)}</a></div></li>`,
-    s.telegram && `<li>${icon('telegram')}<div><span>Telegram</span><a href="${esc(s.telegram)}" target="_blank" rel="noopener">Telegram orqali yozish</a></div></li>`,
-    s.email && `<li>${icon('mail')}<div><span>Elektron pochta</span><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></div></li>`,
-    s.address && `<li>${icon('pin')}<div><span>Manzil</span><p>${esc(s.address)}</p></div></li>`,
-    s.work_hours && `<li>${icon('clock')}<div><span>Ish vaqti</span><p>${esc(s.work_hours)}</p></div></li>`,
+    s.phone && `<li>${toneIcon('phone', 'blue')}<div><span>Telefon</span><a href="${phoneHref(s.phone)}">${esc(s.phone)}</a></div></li>`,
+    s.phone2 && `<li>${toneIcon('phone', 'blue')}<div><span>Qo‘shimcha telefon</span><a href="${phoneHref(s.phone2)}">${esc(s.phone2)}</a></div></li>`,
+    s.telegram && `<li>${toneIcon('telegram', 'cyan')}<div><span>Telegram</span><a href="${esc(s.telegram)}" target="_blank" rel="noopener">Telegram orqali yozish</a></div></li>`,
+    s.email && `<li>${toneIcon('mail', 'orange')}<div><span>Elektron pochta</span><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></div></li>`,
+    s.address && `<li>${toneIcon('pin', 'green')}<div><span>Manzil</span><p>${esc(s.address)}</p></div></li>`,
+    s.work_hours && `<li>${toneIcon('clock', 'purple')}<div><span>Ish vaqti</span><p>${esc(s.work_hours)}</p></div></li>`,
   ].filter(Boolean).join('');
   const branchCards = branches.map((b) => `<article class="branch-card" data-reveal>
     ${b.map_url ? `<div class="map-wrap"><iframe src="${esc(b.map_url)}" title="${esc(b.name)} xaritada" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div>` : ''}
     <div class="branch-body"><h3 class="card-title">${esc(b.name)}</h3>
       <ul class="contact-list compact">
-        <li>${icon('pin')}<p>${esc(b.address)}</p></li>
-        ${b.phone ? `<li>${icon('phone')}<a href="${phoneHref(b.phone)}">${esc(b.phone)}</a></li>` : ''}
-        ${b.hours ? `<li>${icon('clock')}<p>${esc(b.hours)}</p></li>` : ''}
+        <li>${toneIcon('pin', 'green', 'sm')}<p>${esc(b.address)}</p></li>
+        ${b.phone ? `<li>${toneIcon('phone', 'blue', 'sm')}<a href="${phoneHref(b.phone)}">${esc(b.phone)}</a></li>` : ''}
+        ${b.hours ? `<li>${toneIcon('clock', 'purple', 'sm')}<p>${esc(b.hours)}</p></li>` : ''}
       </ul></div></article>`).join('');
   return { info, branchCards };
 }
@@ -453,7 +463,7 @@ export function homePage(d) {
         ${s.school_url ? `<a class="btn btn-ghost btn-lg" href="${esc(s.school_url)}" target="_blank" rel="noopener">Xususiy maktab ${icon('arrow')}</a>` : ''}
       </div>
       <ul class="hero-points" data-reveal style="--d:320ms">
-        <li>${icon('check')}Individual yondashuv</li><li>${icon('check')}Qulay dars jadvali</li><li>${icon('check')}Bepul maslahat</li>
+        <li>${icon('dcheck', 'dcheck')}Individual yondashuv</li><li>${icon('dcheck', 'dcheck')}Qulay dars jadvali</li><li>${icon('dcheck', 'dcheck')}Bepul maslahat</li>
       </ul>
     </div>
     <div class="hero-visual" aria-hidden="true">
@@ -472,7 +482,7 @@ ${statsStrip(s)}
 <section class="section" id="kurslar">
   <div class="container">
     ${sectionHead({ eyebrow: 'Kurslar', title: 'Kurslarimiz', lead: 'O‘zingizga mos yo‘nalishni tanlang va bugunoq o‘qishni boshlang.', link: ['/kurslar', 'Barcha kurslar'] })}
-    ${coursesGrid(courses.slice(0, 6))}
+    ${coursesGrid(courses.slice(0, 6), courses)}
   </div>
 </section>
 
@@ -533,7 +543,7 @@ export function courseDetailPage({ course: c, courses }) {
       <h1 class="page-title" data-reveal>${esc(c.title)}</h1>
       <p class="section-lead" data-reveal>${esc(c.short_desc)}</p>
     </div>
-    <div class="icon3d icon3d-xl" data-reveal>${icon(c.icon || 'book', 'icon3d-svg')}</div>
+    <span class="course-icon course-icon-xl tone-${courseTone(c, courses)}" data-reveal aria-hidden="true">${icon(c.icon || 'book', 'course-icon-svg')}</span>
   </div></section>
 <section class="section section-tight"><div class="container course-layout">
   <article class="prose" data-reveal>${paragraphs || '<p>Kurs dasturi, dars jadvali va narxlar haqida batafsil ma’lumot olish uchun ariza qoldiring — mutaxassislarimiz siz bilan bog‘lanib, darajangizga mos guruhni tanlashda yordam berishadi.</p>'}</article>
@@ -547,7 +557,7 @@ export function courseDetailPage({ course: c, courses }) {
     <button class="btn btn-ghost btn-block" type="button" data-enroll="consult">Bepul maslahat olish</button>
   </aside>
 </div></section>
-${others.length ? `<section class="section"><div class="container">${sectionHead({ eyebrow: 'Yana', title: 'Boshqa kurslar', link: ['/kurslar', 'Barcha kurslar'] })}${coursesGrid(others)}</div></section>` : ''}`;
+${others.length ? `<section class="section"><div class="container">${sectionHead({ eyebrow: 'Yana', title: 'Boshqa kurslar', link: ['/kurslar', 'Barcha kurslar'] })}${coursesGrid(others, courses)}</div></section>` : ''}`;
 }
 
 export function teachersPage({ teachers }) {
@@ -566,7 +576,7 @@ export function aboutPage({ s, testimonials, faqs = [] }) {
 <section class="section section-tight"><div class="container about-grid">
   <div class="prose" data-reveal>${paragraphs}</div>
   <div class="about-card" data-reveal>
-    <div class="icon3d icon3d-xl">${icon('award', 'icon3d-svg')}</div>
+    <span class="course-icon course-icon-xl tone-orange" aria-hidden="true">${icon('award', 'course-icon-svg')}</span>
     <h2 class="card-title">Bizning maqsadimiz</h2>
     <p class="card-text">Har bir o‘quvchi o‘z maqsadiga ishonch bilan erishishi uchun puxta bilim va to‘g‘ri yo‘nalish berish.</p>
     <button class="btn btn-gold" type="button" data-enroll="consult">Bepul maslahat olish</button>

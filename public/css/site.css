@@ -680,3 +680,65 @@ body.modal-open { overflow: hidden; }
   .why-card:hover .course-icon { transform: scale(1.06) rotate(-4deg); }
   .why-card:hover { box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .8), 0 0 50px -24px var(--tone-a); }
 }
+
+/* ==========================================================================
+   Butun saytdagi belgilar — rangli gradient doira (kurs kartalari uslubi)
+   ========================================================================== */
+.tone-icon {
+  --size: 44px;
+  width: var(--size); height: var(--size); flex: none; border-radius: 50%;
+  display: inline-grid; place-items: center; color: #fff;
+  background: linear-gradient(135deg, var(--tone-a), var(--tone-b));
+  box-shadow: 0 10px 22px -12px var(--tone-a), inset 0 1px 0 rgba(255, 255, 255, .3);
+}
+.tone-icon .ico { width: 46%; height: 46%; color: #fff; padding: 0; border: 0; background: none; margin: 0; }
+.tone-icon-xs { --size: 26px; }
+.tone-icon-sm { --size: 32px; }
+.tone-icon-lg { --size: 64px; margin: 0 auto 16px; }
+
+/* Aloqa ro‘yxatlari: eski kvadrat plitkalar o‘rniga doiralar */
+.contact-list li { align-items: center; }
+.contact-list.compact .tone-icon .ico, .footer-contacts .tone-icon .ico { width: 46%; height: 46%; color: #fff; }
+.footer-contacts li { align-items: center; }
+
+/* Kurs sahifasi va “Biz haqimizda” dagi katta belgi */
+.course-icon-xl { width: 112px; height: 112px; }
+.course-icon-xl .course-icon-svg { width: 56px; height: 56px; }
+.about-card .course-icon-xl { margin-bottom: 8px; }
+
+/* Ikki belgili tasdiq: bosh ekran va ustozlar ro‘yxati */
+.hero-points .dcheck { color: var(--accent); width: 24px; height: 18px; margin: 0; }
+.check-list li { align-items: flex-start; }
+.check-list .dcheck { color: var(--accent); width: 22px; height: 16px; margin-top: 4px; }
+.teacher-exp { gap: 10px; }
+
+/* Raqamlar: har biri o‘z rangida, yuqorida rangli chiziq */
+.stats-grid li { position: relative; overflow: hidden; }
+.stats-grid li::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px;
+  background: linear-gradient(90deg, var(--tone-a), var(--tone-b));
+}
+.stats-grid strong {
+  background: linear-gradient(90deg, var(--tone-a), var(--tone-b));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.stats-grid .tone-dark strong { background: none; color: var(--text); }
+
+/* Ijtimoiy tarmoqlar: doira, hover’da gradient */
+.socials a { border-radius: 50%; }
+.socials a:hover {
+  color: #fff; border-color: transparent;
+  background: linear-gradient(135deg, #3D8BF2, #57B9E8);
+}
+
+/* Ustoz va fikr muallifi avatarlari */
+.avatar {
+  background: linear-gradient(135deg, #3D8BF2, #57B9E8); border: 0; color: #fff;
+  box-shadow: 0 12px 24px -12px #3D8BF2;
+}
+[data-theme="light"] .avatar, [data-theme="light"] .avatar-sm { background: linear-gradient(135deg, #3D8BF2, #57B9E8); color: #fff; }
+
+/* Muvaffaqiyat belgisi va FAQ “+” */
+.success-badge { background: linear-gradient(135deg, #3C9A2E, #7CC343); color: #fff; box-shadow: 0 0 0 10px rgba(124, 195, 67, .15), 0 0 40px rgba(124, 195, 67, .3); }
+.faq-item summary::after { background: linear-gradient(135deg, #3D8BF2, #57B9E8); color: #fff; }
+.contact-list .tone-icon, .footer-contacts .tone-icon { display: inline-grid; color: #fff; font-size: inherit; }
