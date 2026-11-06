@@ -888,3 +888,5 @@ body.modal-open { overflow: hidden; }
 [data-theme="light"] .form-success { background: var(--blue-soft); border-color: rgba(11, 69, 160, .3); }
 [data-theme="light"] .form-success .ico { color: var(--blue-a); }
 [data-theme="light"] .skip-link { background: var(--blue-a); color: #fff; }
+/* Kunduzgi rejim: “bilim” ostidagi marker olib tashlandi — faqat ko‘k matn */
+[data-theme="light"] .hl { background: none; padding: 0; }
