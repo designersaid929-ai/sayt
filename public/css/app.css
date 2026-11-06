@@ -274,3 +274,16 @@ table.data select.input { padding: 5px 8px; width: auto; }
 [data-theme="light"] .chip:has(input:checked) { border-color: #E6D800; }
 .theme-toggle .i-moon, [data-theme="light"] .theme-toggle .i-sun { display: none; }
 [data-theme="light"] .theme-toggle .i-moon { display: inline; }
+
+/* Kunduzgi rejim: sariq o‘rniga ko‘k (tungi rejimga ta’sir qilmaydi) */
+[data-theme="light"] .btn-gold,
+[data-theme="light"] .tabs button.active,
+[data-theme="light"] .chip:has(input:checked),
+[data-theme="light"] .nav-badge {
+  background: linear-gradient(90deg, #0B45A0, #2F7BEA); color: #fff; border-color: #0B45A0;
+}
+[data-theme="light"] .btn-gold:hover { box-shadow: 0 6px 22px -6px rgba(11, 69, 160, .55); border-color: #0B45A0; }
+[data-theme="light"] .switch input:checked { background: #0B45A0; }
+[data-theme="light"] .pill-new, [data-theme="light"] .pill-yes, [data-theme="light"] .pill-present { background: rgba(47, 123, 234, .14); color: #0B45A0; }
+[data-theme="light"] .multi-list input { accent-color: #0B45A0; }
+[data-theme="light"] .bar > i { background: linear-gradient(90deg, #0B45A0, #2F7BEA); }

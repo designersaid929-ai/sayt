@@ -829,3 +829,62 @@ body.modal-open { overflow: hidden; }
 @media (max-width: 960px) {
   .home-map .main-map { min-height: 320px; aspect-ratio: 4 / 3; }
 }
+
+/* ==========================================================================
+   Kunduzgi rejim: sariq o‘rniga ko‘k (tungi rejimga ta’sir qilmaydi)
+   ========================================================================== */
+[data-theme="light"] {
+  --blue-a: #0B45A0;
+  --blue-b: #2F7BEA;
+  --blue-soft: rgba(47, 123, 234, .14);
+  --accent: #0B45A0;
+}
+/* Tugmalar */
+[data-theme="light"] .btn-gold,
+[data-theme="light"] .course-cta, [data-theme="light"] .tone-dark .course-cta {
+  background: linear-gradient(90deg, var(--blue-a), var(--blue-b)); color: #fff; border: 0;
+  box-shadow: 0 12px 28px -14px rgba(11, 69, 160, .7);
+}
+[data-theme="light"] .btn-gold:hover, [data-theme="light"] .course-cta:hover {
+  box-shadow: 0 0 0 4px var(--blue-soft), 0 16px 34px -12px rgba(11, 69, 160, .6);
+}
+[data-theme="light"] .format-chip input:checked + span { background: var(--blue-a); border-color: var(--blue-a); color: #fff; }
+/* Doira belgilar: ko‘k gradient, oq belgi */
+[data-theme="light"] :is(.tone-blue, .tone-orange, .tone-green, .tone-dark, .tone-purple, .tone-cyan) {
+  --tone-a: #0B45A0; --tone-b: #2F7BEA; --tone-text: #0B45A0;
+}
+[data-theme="light"] .course-icon, [data-theme="light"] .tone-icon {
+  background: linear-gradient(135deg, var(--blue-a), var(--blue-b));
+  box-shadow: 0 10px 22px -12px rgba(11, 69, 160, .8), inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+[data-theme="light"] .course-icon-svg, [data-theme="light"] .tone-icon .ico { filter: brightness(0) invert(1); }
+/* ✓✓, raqamlar, chiziqlar */
+[data-theme="light"] .dcheck, [data-theme="light"] .hero-points .dcheck, [data-theme="light"] .check-list .dcheck { color: var(--blue-a); }
+[data-theme="light"] .stats-grid strong { color: var(--blue-a); }
+[data-theme="light"] .why-card { box-shadow: inset 0 3px 0 var(--blue-b), 0 18px 40px -28px rgba(11, 40, 100, .3); }
+[data-theme="light"] .stats-grid li { box-shadow: inset 0 3px 0 var(--blue-b); }
+[data-theme="light"] .course-card::before { background: linear-gradient(140deg, rgba(47, 123, 234, .8), transparent 45%, transparent 60%, rgba(11, 69, 160, .6)); }
+@media (hover: hover) {
+  [data-theme="light"] .course-card:hover,
+  [data-theme="light"] .result-card:hover,
+  [data-theme="light"] .teacher-card:hover { box-shadow: 0 26px 50px -28px rgba(11, 40, 100, .35), 0 0 40px -20px rgba(47, 123, 234, .6); }
+  [data-theme="light"] .why-card:hover { box-shadow: inset 0 3px 0 var(--blue-b), 0 26px 50px -28px rgba(11, 40, 100, .35), 0 0 40px -20px rgba(47, 123, 234, .6); }
+}
+/* “15 yillik tajriba”, “bilim”, bosh ekran yorug‘ligi */
+[data-theme="light"] .badge { background: var(--blue-soft); border-color: rgba(11, 69, 160, .25); }
+[data-theme="light"] .badge .dot { background: var(--blue-b); box-shadow: 0 0 0 3px rgba(47, 123, 234, .25), 0 0 10px rgba(47, 123, 234, .5); }
+[data-theme="light"] .hl { color: var(--blue-a); background: linear-gradient(transparent 62%, rgba(47, 123, 234, .22) 62%, rgba(47, 123, 234, .22) 92%, transparent 92%); }
+[data-theme="light"] .hero-halo {
+  background: radial-gradient(circle at 50% 55%, rgba(47, 123, 234, .25), transparent 45%), radial-gradient(circle at 50% 50%, rgba(11, 69, 160, .14), transparent 68%);
+}
+/* Qolgan mayda qismlar */
+[data-theme="light"] .avatar, [data-theme="light"] .avatar-sm,
+[data-theme="light"] .faq-item summary::after,
+[data-theme="light"] .socials a:hover,
+[data-theme="light"] .success-badge {
+  background: linear-gradient(135deg, var(--blue-a), var(--blue-b)); color: #fff;
+}
+[data-theme="light"] .success-badge { box-shadow: 0 0 0 10px var(--blue-soft), 0 0 40px rgba(47, 123, 234, .3); }
+[data-theme="light"] .form-success { background: var(--blue-soft); border-color: rgba(11, 69, 160, .3); }
+[data-theme="light"] .form-success .ico { color: var(--blue-a); }
+[data-theme="light"] .skip-link { background: var(--blue-a); color: #fff; }
