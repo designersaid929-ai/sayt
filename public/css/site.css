@@ -609,8 +609,9 @@ body.modal-open { overflow: hidden; }
 .format-field { border: 0; padding: 0; margin: 0; min-width: 0; }
 .format-field legend { padding: 0; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: var(--text-2); }
 .format-options { display: flex; flex-wrap: wrap; gap: 8px; }
-.format-chip { cursor: pointer; }
-.format-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.format-chip { cursor: pointer; position: relative; }
+/* Yashirin radio tugma: umumiy “input { width: 100% }” qoidasi uni kengaytirib, telefonda sahifani yonga cho‘zib yuborardi */
+.field .format-chip input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; padding: 0; margin: 0; border: 0; opacity: 0; pointer-events: none; }
 .format-chip span {
   display: inline-block; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line-strong);
   font-size: 14px; transition: background-color .2s, border-color .2s, color .2s;
@@ -890,3 +891,7 @@ body.modal-open { overflow: hidden; }
 [data-theme="light"] .skip-link { background: var(--blue-a); color: #fff; }
 /* Kunduzgi rejim: “bilim” ostidagi marker olib tashlandi — faqat ko‘k matn */
 [data-theme="light"] .hl { background: none; padding: 0; }
+
+/* Telefonda sahifa ekrandan kengayib ketmasligi uchun: grid ichidagi bloklar va select’lar torayishi mumkin bo‘lsin */
+.contact-grid > *, .course-layout > *, .about-grid > *, .field-row > *, .field { min-width: 0; }
+.field select, .field input, .field textarea { max-width: 100%; min-width: 0; }
